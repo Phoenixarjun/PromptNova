@@ -1,5 +1,5 @@
 from langchain.prompts import PromptTemplate
-from .prompt_agent import PromptAgent
+from ..prompt_agent import PromptAgent
 
 class AutomaticPromptEngineering(PromptAgent):
     """Agent for Automatic Prompt Engineering (APE) style."""
@@ -11,7 +11,7 @@ class AutomaticPromptEngineering(PromptAgent):
         """Refines the user input using Automatic Prompt Engineering prompting."""
         ape_template = PromptTemplate(
             input_variables=["user_input", "optimization_goal"],
-            template="""You are an expert prompt engineer with 25+ years of experience. Transform the following raw, improper user input into a top-tier, expert-level prompt optimized for Gemini AI. The refined prompt should be clear, concise, specific, actionable, and structured with precise instructions. Use automatic prompt engineering (APE): instruct the AI to iteratively evolve the prompt towards the optimization goal ({optimization_goal}), automating refinement for the best results.
+            template="""You are an expert prompt engineer with 25+ years of experience. Transform the following raw, improper user input into a top-tier, expert-level prompt optimized for Gemini AI, OpenAI ChatGPT, or any large language model. The refined prompt should be clear, concise, specific, actionable, and structured with precise instructions. Use automatic prompt engineering (APE): instruct the AI to iteratively evolve the prompt towards the optimization goal ({optimization_goal}), automating refinement for the best results.
 
 User Input: {user_input}"""
         )

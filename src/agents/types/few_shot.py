@@ -1,5 +1,6 @@
 from langchain.prompts import PromptTemplate
-from .prompt_agent import PromptAgent
+from ..prompt_agent import PromptAgent
+from typing import List
 
 class FewShot(PromptAgent):
     """Agent for Few-Shot Prompting style."""
@@ -14,7 +15,7 @@ class FewShot(PromptAgent):
         
         few_shot_template = PromptTemplate(
             input_variables=["user_input", "examples_str"],
-            template="""You are an expert prompt engineer with 25+ years of experience. Transform the following raw, improper user input into a top-tier, expert-level prompt optimized for Gemini AI. The refined prompt should be clear, concise, specific, actionable, and structured with precise instructions. Use few-shot prompting: include the provided examples to demonstrate the desired style, format, and quality, helping the AI mimic high-quality outputs.
+            template="""You are an expert prompt engineer with 25+ years of experience. Transform the following raw, improper user input into a top-tier, expert-level prompt optimized for Gemini AI, OpenAI ChatGPT, or any large language model. The refined prompt should be clear, concise, specific, actionable, and structured with precise instructions. Use few-shot prompting: include the provided examples to demonstrate the desired style, format, and quality, helping the AI mimic high-quality outputs.
 
 {examples_str}
 
