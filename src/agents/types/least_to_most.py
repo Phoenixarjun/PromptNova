@@ -1,5 +1,6 @@
 from langchain.prompts import PromptTemplate
-from .prompt_agent import PromptAgent
+from ..prompt_agent import PromptAgent
+from typing import List
 
 class LeastToMost(PromptAgent):
     """Agent for Least-to-Most Prompting style."""
@@ -14,7 +15,7 @@ class LeastToMost(PromptAgent):
         
         least_to_most_template = PromptTemplate(
             input_variables=["user_input", "sub_tasks_str"],
-            template="""You are an expert prompt engineer with 25+ years of experience. Transform the following raw, improper user input into a top-tier, expert-level prompt optimized for Gemini AI. The refined prompt should be clear, concise, specific, actionable, and structured with precise instructions. Use least-to-most prompting: instruct the AI to break the task into sub-tasks ({sub_tasks_str}), solving from simplest to most complex for cumulative understanding.
+            template="""You are an expert prompt engineer with 25+ years of experience. Transform the following raw, improper user input into a top-tier, expert-level prompt optimized for Gemini AI, OpenAI ChatGPT, or any large language model. The refined prompt should be clear, concise, specific, actionable, and structured with precise instructions. Use least-to-most prompting: instruct the AI to break the task into sub-tasks ({sub_tasks_str}), solving from simplest to most complex for cumulative understanding.
 
 User Input: {user_input}"""
         )

@@ -13,7 +13,6 @@ class PromptInput(BaseModel):
 class ZeroShotPromptInput(PromptInput):
     """Input schema for Zero-Shot Prompting style."""
     style: Literal["zero_shot"] = "zero_shot"
-    # No extra fields needed; relies on raw input.
 
 class OneShotPromptInput(PromptInput):
     """Input schema for One-Shot Prompting style."""

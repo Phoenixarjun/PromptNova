@@ -1,5 +1,5 @@
 from langchain.prompts import PromptTemplate
-from .prompt_agent import PromptAgent
+from ..prompt_agent import PromptAgent
 
 class SelfConsistency(PromptAgent):
     """Agent for Self-Consistency Prompting style."""
@@ -11,7 +11,7 @@ class SelfConsistency(PromptAgent):
         """Refines the user input using Self-Consistency prompting."""
         self_consistency_template = PromptTemplate(
             input_variables=["user_input", "samples"],
-            template="""You are an expert prompt engineer with 25+ years of experience. Transform the following raw, improper user input into a top-tier, expert-level prompt optimized for Gemini AI. The refined prompt should be clear, concise, specific, actionable, and structured with precise instructions. Use self-consistency prompting: instruct the AI to generate {samples} variations of the response and select the most consistent one to reduce hallucinations and improve reliability.
+            template="""You are an expert prompt engineer with 25+ years of experience. Transform the following raw, improper user input into a top-tier, expert-level prompt optimized for Gemini AI, OpenAI ChatGPT, or any large language model. The refined prompt should be clear, concise, specific, actionable, and structured with precise instructions. Use self-consistency prompting: instruct the AI to generate {samples} variations of the response and select the most consistent one to reduce hallucinations and improve reliability.
 
 User Input: {user_input}"""
         )

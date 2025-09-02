@@ -1,5 +1,5 @@
 from langchain.prompts import PromptTemplate
-from .prompt_agent import PromptAgent
+from ..prompt_agent import PromptAgent
 
 class Emotion(PromptAgent):
     """Agent for Emotion Prompting style."""
@@ -11,7 +11,7 @@ class Emotion(PromptAgent):
         """Refines the user input using Emotion prompting."""
         emotion_template = PromptTemplate(
             input_variables=["user_input", "emotion"],
-            template="""You are an expert prompt engineer with 25+ years of experience. Transform the following raw, improper user input into a top-tier, expert-level prompt optimized for Gemini AI. The refined prompt should be clear, concise, specific, actionable, and structured with precise instructions. Use emotion prompting: infuse the prompt with the specified emotion ({emotion}) to elicit more engaging, empathetic, or motivated responses from the AI. Ensure the emotion enhances the prompt without compromising clarity.
+            template="""You are an expert prompt engineer with 25+ years of experience. Transform the following raw, improper user input into a top-tier, expert-level prompt optimized for Gemini AI, OpenAI ChatGPT, or any large language model. The refined prompt should be clear, concise, specific, actionable, and structured with precise instructions. Use emotion prompting: infuse the prompt with the specified emotion ({emotion}) to elicit more engaging, empathetic, or motivated responses from the AI. Ensure the emotion enhances the prompt without compromising clarity.
 
 User Input: {user_input}"""
         )
