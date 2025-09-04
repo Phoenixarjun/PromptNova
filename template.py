@@ -13,8 +13,9 @@ list_of_files = [
 
 
     f"src/agents/prompt_agent.py",
-    f"src/agents/typesSchema.py",
-    f"src/agents/frameworkSchema.py",
+    f"src/agents/final_prompt.py",
+    f"src/agents/refine_agent.py",
+    f"src/agents/self_correction.py",
 
     f"src/agents/types/zero_shot.py",
     f"src/agents/types/one_shot.py",
@@ -52,6 +53,8 @@ list_of_files = [
     f"src/chains/pipeline.py",
 
     f"src/models/prompt_schema.py",
+    f"src/models/typeSchema.py",
+    f"src/models/frameworkSchema.py",
 
     f"research/testing.ipynb",
     
