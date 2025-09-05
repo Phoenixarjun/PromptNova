@@ -8,13 +8,27 @@ class FinalPrompt(PromptAgent):
     def __init__(self):
         super().__init__()
     
-    def integrate(self, refined_responses: Dict) -> str:
-        """Integrates all refined responses into a wholesome prompt."""
+    async def refine(self, user_input: str, **kwargs) -> str:
+        """Refines the user input by integrating refined responses."""
+        refined_responses = kwargs.get("refined_responses", {})
+        type_prompts = kwargs.get("type_prompts", {})
+        if not refined_responses and not type_prompts:
+            raise ValueError("No refined or type prompts provided for integration.")
+        return self.integrate(refined_responses, type_prompts, user_input)
+    
+    def integrate(self, refined_responses: Dict, type_prompts: Dict, user_input: str) -> str:
+        """Integrates refined responses into a concise prompt."""
         integration_template = PromptTemplate(
-            input_variables=["refined_responses"],
-            template="""You are an expert prompt integrator with 25+ years of experience. Combine the following refined responses from different agents into a single, cohesive, top-tier prompt optimized for Gemini AI. Ensure the final prompt incorporates all strengths, is clear, concise, specific, actionable, and fully aligns with the user's intent.
+            input_variables=["refined_responses", "type_prompts", "user_input"],
+            template="""You are a world-class expert in the relevant domain. Based on the provided refined responses, type prompts, and user input, create a single, concise, and actionable prompt that directly addresses the user's request. Start the prompt with "You are a..." and focus on clarity and specificity. If refined responses are empty, use type prompts or the user input to create a relevant prompt. Output ONLY the final prompt, no explanations, no meta text, no frameworks, and no additional commentary.
 
-Refined Responses: {refined_responses}"""
+Refined Responses: {refined_responses}
+Type Prompts: {type_prompts}
+User Input: {user_input}"""
         )
         chain = integration_template | self.llm
-        return chain.invoke({"refined_responses": str(refined_responses)}).content
+        return chain.invoke({
+            "refined_responses": str(refined_responses),
+            "type_prompts": str(type_prompts),
+            "user_input": user_input
+        }).content

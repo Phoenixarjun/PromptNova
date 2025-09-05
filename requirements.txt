@@ -1,5 +1,5 @@
 fastapi
-uvicorn[standard]==0.30.1
+[standard]==0.30.1
 langchain
 langchain-community
 langgraph==0.1.5

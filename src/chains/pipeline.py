@@ -94,12 +94,12 @@ class PromptPipeline:
 
         async def type_refine_node(state: PromptState) -> PromptState:
             tasks = [
-                self.agents[style].refine(state["prompt_input"].user_input)
+                asyncio.to_thread(self.agents[style].refine, state["prompt_input"].user_input)
                 for style in state["prompt_input"].style
             ]
             results = await asyncio.gather(*tasks, return_exceptions=True)
             type_prompts = {
-                style: result if isinstance(result, str) else str(result)
+                style: (result if isinstance(result, str) else str(result))
                 for style, result in zip(state["prompt_input"].style, results)
             }
             logger.info(f"Type prompts generated: {type_prompts}")
@@ -107,10 +107,11 @@ class PromptPipeline:
 
         async def evaluate_node(state: PromptState) -> PromptState:
             combined_prompt = "\n".join(state["type_prompts"].values())
-            evaluation = self.self_correction.evaluate(
-                prompt=combined_prompt,
-                user_prompt=state["prompt_input"].user_input,
-                agents=state["prompt_input"].style
+            evaluation = await asyncio.to_thread(
+                self.self_correction.evaluate,
+                combined_prompt,
+                state["prompt_input"].user_input,
+                state["prompt_input"].style,
             )
             logger.info(f"Evaluation result: {evaluation}")
             return {"evaluation": evaluation, "iteration": state["iteration"] + 1}
@@ -118,17 +119,24 @@ class PromptPipeline:
         async def refine_node(state: PromptState) -> PromptState:
             if state["evaluation"]["status"] == "yes":
                 return state
-            refined_prompts = self.refine_agent.refine_based_on_feedback(
-                user_input=state["prompt_input"].user_input,
-                feedback=state["evaluation"],
-                agents=state["prompt_input"].style
+            logger.info(f"Passing evaluation to RefineAgent: {state['evaluation']}")
+            refined_prompts = await asyncio.to_thread(
+                self.refine_agent.refine_based_on_feedback,
+                state["prompt_input"].user_input,
+                state["evaluation"],
+                state["prompt_input"].style,
             )
             logger.info(f"Refined prompts: {refined_prompts}")
             return {"refined_prompts": refined_prompts}
 
         async def integrate_node(state: PromptState) -> PromptState:
-            prompts = state["refined_prompts"] if state["refined_prompts"] else state["type_prompts"]
-            integrated_prompt = self.final_prompt.integrate(prompts)
+            prompts = state["refined_prompts"] if state["refined_prompts"] and all(state["refined_prompts"].values()) else state["type_prompts"]
+            logger.info(f"Passing prompts to FinalPrompt.integrate: {prompts}")
+            integrated_prompt = self.final_prompt.integrate(
+                prompts,
+                state["type_prompts"],
+                state["prompt_input"].user_input
+            )
             logger.info(f"Integrated prompt: {integrated_prompt}")
             return {"integrated_prompt": integrated_prompt}
 
