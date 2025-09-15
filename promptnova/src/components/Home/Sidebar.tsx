@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import CryptoJS from 'crypto-js';
-import { Settings } from 'lucide-react';
+import { Settings, Eye, EyeOff } from 'lucide-react';
 
-// Using a new key to avoid conflicts with any old, unencrypted keys.
 const API_KEY_STORAGE_ITEM = 'gemini_api_key_encrypted';
 
 export const Sidebar = () => {
@@ -17,12 +16,14 @@ export const Sidebar = () => {
     const [password, setPassword] = useState('');
     const [promptConfig, setPromptConfig] = useState({ title: '', action: '' });
     const [promptError, setPromptError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [verifiedPassword, setVerifiedPassword] = useState<string | null>(null);
 
     const resetPrompt = useCallback(() => {
         setIsPrompting(false);
         setPassword('');
         setPromptError('');
+        setShowPassword(false);
         setPromptConfig({ title: '', action: '' });
     }, []);
 
@@ -32,7 +33,7 @@ export const Sidebar = () => {
             setIsKeySaved(true);
             setApiKeyInput('********************');
         } else {
-            setIsEditing(true); // If no key, start in editing mode
+            setIsEditing(true); 
         }
     }, []);
 
@@ -158,15 +159,25 @@ export const Sidebar = () => {
     const PasswordPrompt = () => (
         <div className="mt-4 p-4 bg-gray-200 rounded-md border border-gray-300">
             <h3 className="text-sm font-semibold mb-2 text-gray-800">{promptConfig.title}</h3>
-            <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                placeholder="Enter password"
-                autoFocus
-            />
+            <div className="relative">
+                <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                    className="w-full p-2 pr-10 border border-gray-300 rounded-md text-sm"
+                    placeholder="Enter password"
+                    autoFocus
+                />
+                <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+            </div>
             {promptError && <p className="text-red-600 text-xs mt-1">{promptError}</p>}
             <div className="flex space-x-2 mt-2">
                 <button onClick={handlePasswordSubmit} className="flex-1 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-sm font-medium">

@@ -1,3 +1,4 @@
+"use client"
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -13,10 +14,7 @@ interface DetailPageProps {
   };
 }
 
-// This is the Client Component responsible for rendering the detailed view.
-// It receives the resolved `item` data as a prop.
 const GuideDetailView = ({ item }: { item: typeof allItems[0] }) => {
-  "use client";
   const [copiedIndex, setCopiedIndex] = React.useState<number | null>(null);
 
   const handleCopy = (text: string, index: number) => {

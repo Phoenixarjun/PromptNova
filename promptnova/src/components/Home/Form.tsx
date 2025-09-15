@@ -6,8 +6,15 @@ interface Example {
   input: string;
   output: string;
 }
+interface FormProps {
+  setResult: (result: string) => void;
+  setIsLoading: (loading: boolean) => void;
+  setError: (error: string) => void;
+  isLoading: boolean;
+}
 
-export const Form = () => {
+
+export const Form: React.FC<FormProps> = ({ setResult, setIsLoading, setError, isLoading }) => {
   const types = [
     { name: "Zero Shot", slug: "zero_shot" },
     { name: "Chain of Thought (CoT)", slug: "cot" },
@@ -80,13 +87,45 @@ export const Form = () => {
     setExamples(prev => prev.filter(ex => ex.id !== id));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Prompt:', promptText);
-    console.log('Examples:', examples);
-    console.log('Selected Types:', selectedTypes);
-    console.log('Selected Framework:', selectedFramework);
-    // Here you would typically send this data to your backend API
+    setIsLoading(true);
+    setResult('');
+    setError('');
+
+    const payload = {
+      user_input: promptText,
+      examples,
+      style: selectedTypes,
+      framework: selectedFramework,
+    };
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/refine', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to process error response.' }));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.output_str) {
+        setResult(data.output_str);
+      } else {
+        setError("Received an unexpected response format from the server.");
+        console.error("Unexpected response:", data);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'An unknown error occurred.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -238,9 +277,10 @@ export const Form = () => {
 
         <button
           type="submit"
-          className="w-full bg-gray-800 text-white px-6 py-3 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 font-semibold text-lg"
+          className="w-full bg-gray-800 text-white px-6 py-3 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 font-semibold text-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={isLoading}
         >
-          Generate Prompt
+          {isLoading ? 'Generating...' : 'Generate Prompt'}
         </button>
       </form>
     </div>

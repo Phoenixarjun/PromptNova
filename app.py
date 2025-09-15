@@ -22,17 +22,35 @@ from src.agents.types.generated_knowledge import GeneratedKnowledge
 from src.agents.types.automatic_prompt_engineering import AutomaticPromptEngineering
 from src.agents.types.directional_stimulus import DirectionalStimulus
 import asyncio
+from fastapi.middleware.cors import CORSMiddleware
+
+
+
 
 app = FastAPI(title="PromptNova API", description="API for refining prompts using multiple styles and a framework.")
+
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.post("/refine", response_model=PromptSchema)
 async def refine_prompt(prompt_input: PromptSchema):
     """Refines a user prompt using selected styles and framework."""
     try:
-        logger.info(f"Received request: user_input={prompt_input.user_input[:50]}..., styles={prompt_input.style}, framework={prompt_input.framework}")
+        logger.info(f"Received request: user_input={prompt_input.user_input}..., styles={prompt_input.style}, framework={prompt_input.framework}")
         pipeline = PromptPipeline()
         result = await pipeline.run(prompt_input)
-        logger.info(f"Refined prompt: {result.output_str[:50]}...")
+        logger.info(f"Refined prompt: {result.output_str}...")
         return result
     except Exception as e:
         logger.error(f"Error refining prompt: {str(e)}")

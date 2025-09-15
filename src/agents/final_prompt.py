@@ -20,7 +20,7 @@ class FinalPrompt(PromptAgent):
         """Integrates refined responses into a concise prompt."""
         integration_template = PromptTemplate(
             input_variables=["refined_responses", "type_prompts", "user_input"],
-            template="""You are a world-class expert in the relevant domain. Based on the provided refined responses, type prompts, and user input, create a single, concise, and actionable prompt that directly addresses the user's request. Start the prompt with "You are a..." and focus on clarity and specificity. If refined responses are empty, use type prompts or the user input to create a relevant prompt. Output ONLY the final prompt, no explanations, no meta text, no frameworks, and no additional commentary.
+            template="""You are a world-class expert in the relevant domain. Based on the provided refined responses, type prompts, and user input, create a single, concise, and actionable prompt that directly addresses the user's request. Start the prompt with "You are a..." and focus on clarity and specificity. If refined responses are empty, use type prompts or the user input to create a relevant prompt. Output ONLY the final prompt, with no explanations, no meta text, no frameworks, and no additional commentary.
 
 Refined Responses: {refined_responses}
 Type Prompts: {type_prompts}
