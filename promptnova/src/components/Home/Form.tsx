@@ -1,6 +1,12 @@
 "use client"
 import React, { useState } from 'react';
 
+interface Example {
+  id: number;
+  input: string;
+  output: string;
+}
+
 export const Form = () => {
   const types = [
     { name: "Zero Shot", slug: "zero_shot" },
@@ -40,6 +46,7 @@ export const Form = () => {
   ];
 
   const [promptText, setPromptText] = useState('');
+  const [examples, setExamples] = useState<Example[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedFramework, setSelectedFramework] = useState<string | null>(null);
 
@@ -61,9 +68,22 @@ export const Form = () => {
     }
   };
 
+  const addExample = () => {
+    setExamples(prev => [...prev, { id: Date.now(), input: '', output: '' }]);
+  };
+
+  const handleExampleChange = (id: number, field: 'input' | 'output', value: string) => {
+    setExamples(prev => prev.map(ex => ex.id === id ? { ...ex, [field]: value } : ex));
+  };
+
+  const removeExample = (id: number) => {
+    setExamples(prev => prev.filter(ex => ex.id !== id));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Prompt:', promptText);
+    console.log('Examples:', examples);
     console.log('Selected Types:', selectedTypes);
     console.log('Selected Framework:', selectedFramework);
     // Here you would typically send this data to your backend API
@@ -83,6 +103,55 @@ export const Form = () => {
             onChange={(e) => setPromptText(e.target.value)}
             placeholder="e.g., Generate a Python function to calculate Fibonacci sequence."
           />
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-semibold mb-3">
+            Examples (Optional)
+          </label>
+          <div className="space-y-4">
+            {examples.map((example, index) => (
+              <div key={example.id} className="relative rounded-md border border-gray-200 bg-white p-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <label htmlFor={`example-input-${index}`} className="block text-xs font-medium text-gray-600 mb-1">
+                      Input
+                    </label>
+                    <textarea
+                      id={`example-input-${index}`}
+                      value={example.input}
+                      onChange={(e) => handleExampleChange(example.id, 'input', e.target.value)}
+                      placeholder="Example input"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white text-gray-800 resize-y min-h-[80px] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor={`example-output-${index}`} className="block text-xs font-medium text-gray-600 mb-1">
+                      Output/Example
+                    </label>
+                    <textarea
+                      id={`example-output-${index}`}
+                      value={example.output}
+                      onChange={(e) => handleExampleChange(example.id, 'output', e.target.value)}
+                      placeholder="Expected output"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white text-gray-800 resize-y min-h-[80px] text-sm"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeExample(example.id)}
+                  className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-500 text-white hover:bg-red-600 transition-colors"
+                  aria-label="Remove example"
+                >
+                  <span className="text-sm leading-none pb-0.5">&times;</span>
+                </button>
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={addExample} className="mt-4 w-full rounded-md border-2 border-dashed border-gray-300 bg-gray-50 py-2 px-4 text-center text-sm font-medium text-gray-600 hover:border-gray-400 hover:bg-gray-100 transition-colors">
+            + Add Example
+          </button>
         </div>
 
         <div className="mb-6">
@@ -126,21 +195,31 @@ export const Form = () => {
         </div>
 
         <div className="mb-6">
-          <h2 className="text-gray-700 text-sm font-semibold mb-3">Selected Options</h2>
+          <h2 className="text-gray-700 text-sm font-semibold mb-3">Selected Types</h2>
           <div className="flex flex-wrap gap-2">
-            {selectedTypes.map(slug => (
-              <span key={slug} className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
-                {types.find(t => t.slug === slug)?.name || slug}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSelected(slug, 'type')}
-                  className="text-gray-600 hover:text-gray-900 ml-1"
-                >
-                  &times;
-                </button>
-              </span>
-            ))}
-            {selectedFramework && (
+            {selectedTypes.length > 0 ? (
+              selectedTypes.map(slug => (
+                <span key={slug} className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
+                  {types.find(t => t.slug === slug)?.name || slug}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSelected(slug, 'type')}
+                    className="text-gray-600 hover:text-gray-900 ml-1"
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">No types selected.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-gray-700 text-sm font-semibold mb-3">Selected Framework</h2>
+          <div className="flex flex-wrap gap-2">
+            {selectedFramework ? (
               <span className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
                 {frameworks.find(f => f.slug === selectedFramework)?.name || selectedFramework}
                 <button
@@ -151,9 +230,8 @@ export const Form = () => {
                   &times;
                 </button>
               </span>
-            )}
-            {selectedTypes.length === 0 && !selectedFramework && (
-              <p className="text-gray-500 text-sm">No options selected yet.</p>
+            ) : (
+              <p className="text-gray-500 text-sm">No framework selected.</p>
             )}
           </div>
         </div>

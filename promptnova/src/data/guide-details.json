@@ -1,0 +1,502 @@
+{
+  "types": [
+    {
+      "name": "Zero Shot",
+      "slug": "zero_shot",
+      "short_description": "Enables the AI to respond directly to instructions using its built-in knowledge without examples.",
+      "description": "Zero Shot prompting enables the AI to respond directly to instructions by drawing on its built-in knowledge, allowing for immediate task execution in scenarios where simplicity and speed are essential, such as quick fact retrieval or basic translations, and the analogy is like asking a knowledgeable friend a straightforward question without showing them any prior work, expecting them to answer based on what they already know.",
+      "examples": [
+        "User Prompt: Classify the sentiment of this review: 'The movie was fantastic!' \nAI Response: Positive.",
+        "User Prompt: Translate 'Hello, how are you?' to French. \nAI Response: Bonjour, comment allez-vous?",
+        "User Prompt: Summarize the plot of Romeo and Juliet in one sentence. \nAI Response: Two young lovers from feuding families in Verona defy their parents and meet a tragic end."
+      ],
+      "advantages": [
+        "Reduces prompt length by eliminating the need for examples, leading to faster responses.",
+        "Simplifies prompt design for simple tasks, improving efficiency in quick queries.",
+        "Leverages the AI's general knowledge, making it versatile for unfamiliar topics without additional setup."
+      ]
+    },
+    {
+      "name": "One Shot",
+      "slug": "one_shot",
+      "short_description": "Uses a single example to illustrate the expected format for the AI to follow.",
+      "description": "One Shot prompting involves presenting a single example to illustrate the expected format, enabling the AI to adapt and generate similar responses for new inputs, particularly useful in situations requiring pattern recognition like classification or translation, and the analogy is like showing a student one solved math problem so they can solve a similar one on their own.",
+      "examples": [
+        "User Prompt: Example: 'apple' -> 'fruit'. Now, classify 'carrot'. \nAI Response: vegetable.",
+        "User Prompt: Example: 'The cat sat on the mat' -> Rhyme: hat, bat. Now, rhyme 'dog'. \nAI Response: fog, log.",
+        "User Prompt: Example: 2 + 2 = 4. Now, 3 + 5. \nAI Response: 8."
+      ],
+      "advantages": [
+        "Improves accuracy for patterned tasks with minimal additional input, balancing simplicity and guidance.",
+        "Enhances prompt efficiency by using one example to teach the AI, reducing the need for lengthy explanations.",
+        "Boosts consistency in responses, making it ideal for classification or generation tasks with a specific format."
+      ]
+    },
+    {
+      "name": "Chain of Thought (CoT)",
+      "slug": "cot",
+      "short_description": "Directs the AI to articulate each reasoning step sequentially to solve complex problems.",
+      "description": "Chain of Thought prompting directs the AI to articulate each reasoning step sequentially, building a logical path to the solution, which is particularly effective for intricate problems like mathematical equations or planning scenarios where breaking down the thought process leads to more reliable outcomes, and the analogy is like a detective explaining every clue they follow to solve a mystery, ensuring no detail is missed.",
+      "examples": [
+        "User Prompt: The sum of two numbers is 10. Their difference is 4. What are the numbers? Let's think step by step. \nAI Response: Let x + y = 10, x - y = 4. Add equations: 2x = 14, x = 7. Then y = 3.",
+        "User Prompt: If all cats are mammals and some mammals are dogs, are all cats dogs? Let's think step by step. \nAI Response: Cats are mammals (true). Some mammals are dogs (true). But this doesn't mean cats are dogs; no overlap specified.",
+        "User Prompt: Plan a trip to Paris for 3 days. Let's think step by step. \nAI Response: Day 1: Arrive and visit Eiffel Tower. Day 2: Louvre Museum. Day 3: Seine River cruise and departure."
+      ],
+      "advantages": [
+        "Enhances reasoning for complex problems, leading to more accurate outputs without extra training.",
+        "Increases transparency by showing step-by-step logic, improving trust and debuggability in prompts.",
+        "Boosts prompt efficiency for multi-step tasks, reducing errors in logic-heavy queries like math or planning."
+      ]
+    },
+    {
+      "name": "Tree of Thought (ToT)",
+      "slug": "tot",
+      "short_description": "Expands reasoning into branching paths, allowing the AI to explore and evaluate multiple possibilities.",
+      "description": "Tree of Thought prompting expands reasoning into branching paths where the AI explores various possibilities and evaluates the most promising one, ideal for decision-making or optimization problems where multiple options need consideration to arrive at the best solution, and the analogy is like a tree growing branches in different directions, with the AI pruning the weak ones to focus on the strongest path forward.",
+      "examples": [
+        "User Prompt: Solve 8 queens puzzle. Explore branches for row 1: place queen in column 1, 2, or 3. Evaluate each. \nAI Response: Column 1 leads to conflict in row 2; column 2 better, continue branching.",
+        "User Prompt: Choose best route from A to B with traffic. Branch options: highway, city street, detour. Evaluate time. \nAI Response: Highway: 30 min but traffic; city: 40 min clear; detour: 35 min optimal.",
+        "User Prompt: Plan a meal with ingredients: chicken, rice, veggies. Branch recipes: stir-fry, soup, salad. Evaluate nutrition. \nAI Response: Stir-fry balanced; soup lighter; salad healthiest."
+      ],
+      "advantages": [
+        "Improves problem-solving for tasks with multiple options, finding optimal solutions efficiently.",
+        "Reduces prompt redundancy by evaluating branches in one go, enhancing decision-making accuracy.",
+        "Boosts efficiency in exploratory queries, like optimization or planning, by pruning suboptimal paths."
+      ]
+    },
+    {
+      "name": "ReAct",
+      "slug": "react",
+      "short_description": "Alternates between reasoning and taking actions, allowing the AI to observe outcomes and adjust.",
+      "description": "ReAct prompting alternates between reasoning and taking actions, enabling the AI to observe outcomes and adjust accordingly in an iterative loop, which is especially valuable for dynamic environments like simulations or troubleshooting where real-time adaptation is crucial, and the analogy is like a scientist conducting an experiment, thinking about hypotheses, testing them, observing results, and refining the approach based on findings.",
+      "examples": [
+        "User Prompt: Find square root of 16. Reason: It's 4 because 4*4=16. Act: Confirm. Observe: Correct. \nAI Response: Square root is 4.",
+        "User Prompt: Debug code error. Reason: Missing semicolon. Act: Add it. Observe: Code runs. \nAI Response: Fixed by adding semicolon.",
+        "User Prompt: Play tic-tac-toe. Reason: Block opponent. Act: Place X in center. Observe: Opponent moves. \nAI Response: Next move: corner."
+      ],
+      "advantages": [
+        "Enables dynamic adaptation for interactive tasks, improving prompt efficiency in real-time scenarios.",
+        "Reduces errors through observation and adjustment, enhancing accuracy in iterative processes.",
+        "Boosts flexibility for troubleshooting or simulations, making prompts more robust for complex interactions."
+      ]
+    },
+    {
+      "name": "In Context",
+      "slug": "in_context",
+      "short_description": "Supplies relevant background information within the prompt to produce informed responses.",
+      "description": "In Context prompting supplies relevant background information directly within the input, allowing the AI to produce responses that are informed and nuanced by the provided details, particularly beneficial for domain-specific queries or when prior knowledge is essential for accuracy, and the analogy is like giving a storyteller the setting and characters before asking for the plot, ensuring the tale fits seamlessly into the established world.",
+      "examples": [
+        "User Prompt: In the context of World War II, who was Winston Churchill? \nAI Response: British Prime Minister who led the UK to victory.",
+        "User Prompt: In the context of programming, what is a loop? \nAI Response: A structure that repeats a block of code until a condition is met.",
+        "User Prompt: In the context of cooking, how to boil an egg? \nAI Response: Place in boiling water for 10 minutes, then cool."
+      ],
+      "advantages": [
+        "Improves relevance by incorporating specific context, enhancing prompt efficiency for domain-focused queries.",
+        "Reduces ambiguity in responses, leading to more accurate outputs without additional clarification.",
+        "Boosts adaptability for tasks requiring background knowledge, making prompts versatile for specialized topics."
+      ]
+    },
+    {
+      "name": "Emotion",
+      "slug": "emotion",
+      "short_description": "Incorporates affective cues to shape the AI's output, evoking or responding to feelings.",
+      "description": "Emotion prompting incorporates affective cues to shape the AI's output, enabling it to craft responses that evoke or respond to particular feelings, which is useful in creative writing, marketing, or customer service where emotional resonance can make the content more engaging and relatable, and the analogy is like directing an actor to deliver lines with joy or sorrow to convey the scene's mood, ensuring the audience feels the intended emotion.",
+      "examples": [
+        "User Prompt: Write a happy story about a dog. \nAI Response: The joyful dog played in the park, wagging its tail happily.",
+        "User Prompt: Respond sadly to a lost item. \nAI Response: I'm so sorry about your lost item; it must be heartbreaking.",
+        "User Prompt: Generate an angry rant about traffic. \nAI Response: This traffic is infuriating; why is it always so jammed!"
+      ],
+      "advantages": [
+        "Enhances engagement in creative or empathetic tasks, improving prompt efficiency for emotional content.",
+        "Reduces flat responses, making outputs more relatable and human-like.",
+        "Boosts effectiveness in scenarios like therapy bots or storytelling, aligning prompts with emotional intent."
+      ]
+    },
+    {
+      "name": "Role",
+      "slug": "role",
+      "short_description": "Assigns a particular persona to the AI, directing it to respond from that viewpoint.",
+      "description": "Role prompting assigns a particular persona to the AI, directing it to respond from that viewpoint, which helps in producing outputs that are consistent with the expertise or style of the role, making it effective for specialized or creative scenarios where authenticity is key, and the analogy is like an actor embodying a character to deliver lines in a play, ensuring the performance matches the role's traits and background.",
+      "examples": [
+        "User Prompt: As a doctor, diagnose a headache. \nAI Response: It could be tension; rest and hydrate.",
+        "User Prompt: As a chef, recommend a recipe for pasta. \nAI Response: Boil pasta, add sauce, serve with cheese.",
+        "User Prompt: As a historian, explain World War I. \nAI Response: Triggered by assassination, led to trench warfare."
+      ],
+      "advantages": [
+        "Improves response relevance by adopting a role, enhancing prompt efficiency for specialized tasks.",
+        "Reduces generic answers, making outputs more expert-like and tailored.",
+        "Boosts creativity in role-playing scenarios, aligning prompts with persona-driven contexts."
+      ]
+    },
+    {
+      "name": "Few Shot",
+      "slug": "few_shot",
+      "short_description": "Offers a small set of examples to illustrate the desired pattern for the AI to generalize from.",
+      "description": "Few Shot prompting offers a small set of examples to illustrate the desired pattern, enabling the AI to generalize and produce similar outputs for new inputs, which is particularly advantageous for tasks needing format consistency like translations or classifications, and the analogy is like showing a child a few drawings of animals so they can draw one in the same style, helping them replicate the pattern with creativity.",
+      "examples": [
+        "User Prompt: Example 1: Apple - Fruit. Example 2: Carrot - Vegetable. Now, Banana. \nAI Response: Fruit.",
+        "User Prompt: Example 1: 2+2=4. Example 2: 3+3=6. Now, 4+4. \nAI Response: 8.",
+        "User Prompt: Example 1: 'Hello' in Spanish: Hola. Example 2: 'Goodbye' in Spanish: Adiós. Now, 'Thank you'. \nAI Response: Gracias."
+      ],
+      "advantages": [
+        "Enhances pattern recognition with minimal examples, improving prompt efficiency for formatted tasks.",
+        "Reduces errors in repetitive or styled responses, ensuring consistency.",
+        "Boosts learning for new tasks, making prompts adaptable for similar queries."
+      ]
+    },
+    {
+      "name": "Self Consistency",
+      "slug": "self_consistency",
+      "short_description": "Generates multiple responses and selects the most consistent one to increase reliability.",
+      "description": "Self Consistency prompting involves producing several responses to the same query and selecting the most frequent or consistent one, which helps in minimizing variability and increasing the trustworthiness of the output for tasks where accuracy is paramount, and the analogy is like polling a group of experts on a question and choosing the answer the majority agrees on, ensuring the result is reliable through consensus.",
+      "examples": [
+        "User Prompt: Generate 3 answers for 5+5 and choose the consistent one. \nAI Response: 10 (all agree).",
+        "User Prompt: Provide 3 summaries of Romeo and Juliet and select the consistent version. \nAI Response: Lovers from feuding families die tragically.",
+        "User Prompt: Generate 3 translations of 'Hello' to French and choose consistent. \nAI Response: Bonjour."
+      ],
+      "advantages": [
+        "Improves accuracy by cross-checking responses, enhancing prompt efficiency for reliable outputs.",
+        "Reduces variability in answers, making results more trustworthy.",
+        "Boosts confidence in factual tasks, aligning prompts with consistent reasoning."
+      ]
+    },
+    {
+      "name": "Meta Prompting",
+      "slug": "meta_prompting",
+      "short_description": "Directs the AI to create or optimize prompts for subsequent use, fostering self-reflection.",
+      "description": "Meta Prompting directs the AI to create or optimize prompts for subsequent use, fostering a self-reflective process that refines instructions for better performance in iterative or adaptive tasks, and the analogy is like a coach instructing a player to devise their own game strategy, leading to more personalized and effective plays.",
+      "examples": [
+        "User Prompt: Create a prompt to explain gravity. \nAI Response: 'What is gravity and how does it work?'",
+        "User Prompt: Refine this prompt: Summarize book. \nAI Response: 'Summarize the plot of [book] in 100 words.'",
+        "User Prompt: Generate a prompt for translating text. \nAI Response: 'Translate [text] from English to French.'"
+      ],
+      "advantages": [
+        "Enhances self-optimization, improving prompt efficiency for iterative tasks.",
+        "Reduces manual refinement, making outputs more tailored.",
+        "Boosts creativity in prompt design, aligning with complex query needs."
+      ]
+    },
+    {
+      "name": "Least to Most",
+      "slug": "least_to_most",
+      "short_description": "Starts with the simplest aspects of a problem and progressively tackles more complex parts.",
+      "description": "Least to Most prompting starts with the simplest aspects of a problem and progressively tackles more complex parts, building a cumulative solution that ensures thorough understanding in layered or hierarchical tasks, and the analogy is like climbing a mountain by first conquering the foothills before attempting the peak, ensuring a stable ascent.",
+      "examples": [
+        "User Prompt: Solve math: 1+1=2, then 2+2=4, now 10+10. \nAI Response: 20.",
+        "User Prompt: Plan a trip: Choose city, then hotel, then itinerary. \nAI Response: City: Paris, Hotel: 3-star, Itinerary: Day 1 sightseeing.",
+        "User Prompt: Debug code: Check syntax, then logic, then run. \nAI Response: Syntax fixed, logic error in loop, runs now."
+      ],
+      "advantages": [
+        "Improves handling of complex tasks by incremental solving, enhancing prompt efficiency.",
+        "Reduces overwhelm, making responses more structured.",
+        "Boosts accuracy in layered problems, aligning prompts with gradual build-up."
+      ]
+    },
+    {
+      "name": "Multi Task",
+      "slug": "multi_task",
+      "short_description": "Bundles several related activities into one instruction for concurrent execution.",
+      "description": "Multi Task prompting bundles several related activities into one instruction, enabling the AI to manage and deliver on multiple objectives concurrently, which streamlines workflows for interconnected or batch processes, and the analogy is like a chef preparing a full meal by handling chopping, boiling, and baking all at once, resulting in a complete dinner efficiently.",
+      "examples": [
+        "User Prompt: Translate 'Hello' to French and explain the word. \nAI Response: Bonjour, meaning 'good day'.",
+        "User Prompt: Summarize book and suggest similar ones. \nAI Response: Romeo and Juliet: Tragic love story. Similar: Othello.",
+        "User Prompt: Calculate 2+2 and 3*3. \nAI Response: 4 and 9."
+      ],
+      "advantages": [
+        "Enhances multitasking, improving prompt efficiency for related queries.",
+        "Reduces separate prompts, making interactions streamlined.",
+        "Boosts comprehensive responses, aligning with interconnected tasks."
+      ]
+    },
+    {
+      "name": "Task Decomposition",
+      "slug": "task_decomposition",
+      "short_description": "Dissects a major objective into smaller, sequential components for systematic resolution.",
+      "description": "Task Decomposition prompting dissects a major objective into smaller, sequential components, facilitating systematic execution and resolution of intricate challenges through manageable segments, and the analogy is like disassembling a machine into its parts to repair it, fixing one component at a time before reassembling the whole.",
+      "examples": [
+        "User Prompt: Build a website: Plan layout, write code, test. \nAI Response: Layout: Header and footer. Code: HTML/CSS. Test: Browser check.",
+        "User Prompt: Cook a meal: Prep ingredients, cook, serve. \nAI Response: Chop veggies, boil pasta, plate dish.",
+        "User Prompt: Plan vacation: Book flights, hotel, itinerary. \nAI Response: Flights: Round trip. Hotel: 3-star. Itinerary: Day 1 sightseeing."
+      ],
+      "advantages": [
+        "Improves complexity management, enhancing prompt efficiency for large tasks.",
+        "Reduces errors by focusing on sub-tasks, making solutions modular.",
+        "Boosts structured outputs, aligning prompts with sequential solving."
+      ]
+    },
+    {
+      "name": "Constrained",
+      "slug": "constrained",
+      "short_description": "Sets explicit boundaries such as length or format to direct the AI's output.",
+      "description": "Constrained prompting sets explicit boundaries such as length or format to direct the AI's output, guaranteeing that responses remain focused and adhere to predefined criteria for precision in constrained environments, and the analogy is like giving an artist a small canvas with specific colors, forcing creativity within limits to produce a masterpiece.",
+      "examples": [
+        "User Prompt: Summarize book in 50 words. \nAI Response: Romeo and Juliet: Star-crossed lovers die tragically.",
+        "User Prompt: Answer in bullet points. \nAI Response: - Point 1. - Point 2.",
+        "User Prompt: Respond in JSON. \nAI Response: {\"answer\": \"Yes\"}."
+      ],
+      "advantages": [
+        "Enhances control over output length/format, improving prompt efficiency for structured needs.",
+        "Reduces verbose responses, making outputs concise.",
+        "Boosts compliance with requirements, aligning prompts with constrained tasks."
+      ]
+    },
+    {
+      "name": "Generated Knowledge",
+      "slug": "generated_knowledge",
+      "short_description": "Has the AI first produce pertinent facts before addressing the main query to enrich the response.",
+      "description": "Generated Knowledge prompting has the AI first produce pertinent facts or information before addressing the main query, enriching the response with self-sourced details for greater depth in knowledge-based inquiries, and the analogy is like a teacher recalling key facts before explaining a lesson, ensuring the explanation is grounded in solid information.",
+      "examples": [
+        "User Prompt: Generate 3 facts about gravity, then explain. \nAI Response: 1. Newton's law. 2. Einstein's relativity. Explanation: Pulls objects.",
+        "User Prompt: Generate 3 tips for cooking, then recipe. \nAI Response: 1. Prep ingredients. 2. Season well. Recipe: Pasta boil.",
+        "User Prompt: Generate 3 history facts, then summarize event. \nAI Response: 1. WWI start. Summary: War in Europe."
+      ],
+      "advantages": [
+        "Improves factual depth, enhancing prompt efficiency for informative tasks.",
+        "Reduces hallucinations by self-generating knowledge, making outputs reliable.",
+        "Boosts educational responses, aligning prompts with knowledge-building."
+      ]
+    },
+    {
+      "name": "Automatic Prompt Engineering",
+      "slug": "automatic_prompt_engineering",
+      "short_description": "Tasks the AI with automatically crafting or enhancing prompts to streamline optimization.",
+      "description": "Automatic Prompt Engineering prompting tasks the AI with automatically crafting or enhancing prompts, streamlining the process for tasks that benefit from iterative instruction optimization without manual tweaking, and the analogy is like a tailor measuring and adjusting a suit automatically to fit perfectly, saving time on custom alterations.",
+      "examples": [
+        "User Prompt: Generate a prompt for summarizing text. \nAI Response: 'Summarize the following in 100 words: [text]'.",
+        "User Prompt: Refine this prompt: Summarize book. \nAI Response: 'Summarize the plot of [book] in 100 words.'",
+        "User Prompt: Create a prompt for math solving. \nAI Response: 'Solve the equation step by step: [equation]'. "
+      ],
+      "advantages": [
+        "Enhances prompt optimization automatically, improving efficiency for iterative tasks.",
+        "Reduces manual effort, making outputs more refined.",
+        "Boosts adaptability, aligning with evolving needs."
+      ]
+    },
+    {
+      "name": "Directional Stimulus",
+      "slug": "directional_stimulus",
+      "short_description": "Supplies guiding hints or emphases to steer the AI's focus toward particular aspects.",
+      "description": "Directional Stimulus prompting supplies guiding hints or emphases to steer the AI's focus, refining responses to highlight particular aspects or directions in exploratory or detailed tasks, and the analogy is like a compass pointing north, directing a traveler to follow a specific path among many possible routes.",
+      "examples": [
+        "User Prompt: Focus on history, explain WWII. \nAI Response: Started in 1939, ended in 1945.",
+        "User Prompt: Emphasize benefits, describe exercise. \nAI Response: Improves health, reduces stress.",
+        "User Prompt: Highlight risks, discuss investing. \nAI Response: Market volatility, potential losses."
+      ],
+      "advantages": [
+        "Improves focus on specific aspects, enhancing prompt efficiency for targeted queries.",
+        "Reduces off-topic responses, making outputs relevant.",
+        "Boosts precision, aligning prompts with directional goals."
+      ]
+    }
+  ],
+  "frameworks": [
+    {
+      "name": "CO-STAR",
+      "slug": "co_star",
+      "short_description": "Structures prompts with Context, Objective, Style, Tone, Audience, and Response for comprehensive tasks.",
+      "description": "CO-STAR framework structures prompts with Context to provide background, Objective to state the goal, Style to define the format, Tone to set the voice, Audience to target the reader, and Response to specify output format, making it effective for comprehensive tasks where alignment with specific needs is crucial, and the analogy is like preparing a detailed recipe where you describe the kitchen setup (Context), the dish you want to make (Objective), the cooking method (Style), the flavor profile (Tone), who will eat it (Audience), and how to plate it (Response).",
+      "examples": [
+        "User Prompt: Write a report on climate change using CO-STAR. \nAI Response: Context: Global warming. Objective: Educate. Style: Formal. Tone: Urgent. Audience: Students. Response: Structured summary.",
+        "User Prompt: Create a marketing email using CO-STAR. \nAI Response: Context: Product launch. Objective: Sell. Style: Persuasive. Tone: Excited. Audience: Customers. Response: Email template.",
+        "User Prompt: Draft a business plan using CO-STAR. \nAI Response: Context: Startup. Objective: Attract investors. Style: Professional. Tone: Confident. Audience: VCs. Response: Plan outline."
+      ],
+      "advantages": [
+        "Improves completeness by covering all aspects, enhancing prompt efficiency for structured tasks.",
+        "Reduces ambiguity in outputs, making responses more targeted.",
+        "Boosts adaptability for diverse audiences, aligning prompts with specific needs."
+      ]
+    },
+    {
+      "name": "TCEF",
+      "slug": "tcef",
+      "short_description": "Organizes prompts with Task, Context, Example, and Format for quick and effective guidance.",
+      "description": "TCEF framework organizes prompts with Task to define the action, Context to provide background, Example to include a demonstration, and Format to specify output structure, offering quick and effective guidance for tasks requiring clarity and illustration, and the analogy is like assembling a puzzle where you identify the piece to place (Task), understand the overall picture (Context), see a completed section (Example), and follow the box design (Format).",
+      "examples": [
+        "User Prompt: Summarize article using TCEF. \nAI Response: Task: Summarize. Context: News article. Example: [summary]. Format: Bullet points.",
+        "User Prompt: Write code using TCEF. \nAI Response: Task: Implement function. Context: Python. Example: Hello World. Format: Code block.",
+        "User Prompt: Plan event using TCEF. \nAI Response: Task: Organize. Context: Birthday. Example: Schedule. Format: Timeline."
+      ],
+      "advantages": [
+        "Enhances accuracy with examples, improving prompt efficiency for instructional tasks.",
+        "Reduces confusion in format, making outputs consistent.",
+        "Boosts quick implementation, aligning prompts with practical needs."
+      ]
+    },
+    {
+      "name": "CRISPE",
+      "slug": "crispe",
+      "short_description": "Uses Capacity, Role, Insight, Statement, Personality, and Example for expert-level, persona-driven responses.",
+      "description": "CRISPE framework utilizes Capacity & Role to assign expertise, Insight to focus on deep analysis, Statement to clear the task, Personality to set the tone, and Example to provide demonstration, creating expert-level prompts for in-depth and persona-driven responses, and the analogy is like directing a movie scene where you define the actor's ability and character (Capacity & Role), the plot twist (Insight), the line delivery (Statement), the emotion (Personality), and a rehearsal clip (Example).",
+      "examples": [
+        "User Prompt: Analyze data using CRISPE. \nAI Response: Capacity: Analyst. Role: Data scientist. Insight: Trends. Statement: Report. Personality: Professional. Example: Chart.",
+        "User Prompt: Teach lesson using CRISPE. \nAI Response: Capacity: Educator. Role: Teacher. Insight: Key concepts. Statement: Explain. Personality: Engaging. Example: Story.",
+        "User Prompt: Design product using CRISPE. \nAI Response: Capacity: Designer. Role: Product manager. Insight: User needs. Statement: Plan. Personality: Creative. Example: Sketch."
+      ],
+      "advantages": [
+        "Improves depth with insights, enhancing prompt efficiency for analytical tasks.",
+        "Reduces generic responses with personality, making outputs engaging.",
+        "Boosts expertise simulation, aligning prompts with role-specific needs."
+      ]
+    },
+    {
+      "name": "RTF",
+      "slug": "rtf",
+      "short_description": "Simplifies prompts with Role, Task, and Format for straightforward and structured results.",
+      "description": "RTF framework simplifies prompts with Role to assign persona, Task to define action, and Format to specify output structure, providing a straightforward method for quick and structured results in time-sensitive tasks, and the analogy is like giving a chef their hat (Role), the dish to cook (Task), and the plating style (Format) for a fast, well-presented meal.",
+      "examples": [
+        "User Prompt: Write email using RTF. \nAI Response: Role: Manager. Task: Invite. Format: Formal letter.",
+        "User Prompt: Solve math using RTF. \nAI Response: Role: Tutor. Task: Explain. Format: Steps.",
+        "User Prompt: Create plan using RTF. \nAI Response: Role: Planner. Task: Organize. Format: List."
+      ],
+      "advantages": [
+        "Enhances simplicity for fast tasks, improving prompt efficiency.",
+        "Reduces complexity in instructions, making outputs structured.",
+        "Boosts role-based consistency, aligning prompts with quick needs."
+      ]
+    },
+    {
+      "name": "ICE",
+      "slug": "ice",
+      "short_description": "Employs Instruction, Context, and Example, ideal for educational prompts that simplify complex topics.",
+      "description": "ICE framework employs Instruction to provide clear command, Context to include background, and Example to demonstrate, making it ideal for educational prompts that simplify complex explanations, and the analogy is like a teacher giving the lesson plan (Instruction), the background story (Context), and a solved homework (Example) to help students grasp the concept.",
+      "examples": [
+        "User Prompt: Explain gravity using ICE. \nAI Response: Instruction: Describe. Context: Physics. Example: Apple falling.",
+        "User Prompt: Teach coding using ICE. \nAI Response: Instruction: Code hello world. Context: Python. Example: Print statement.",
+        "User Prompt: Describe history using ICE. \nAI Response: Instruction: Summarize. Context: WWII. Example: Key events."
+      ],
+      "advantages": [
+        "Improves learning with examples, enhancing prompt efficiency for teaching tasks.",
+        "Reduces confusion with context, making outputs informative.",
+        "Boosts simplicity, aligning prompts with explanatory needs."
+      ]
+    },
+    {
+      "name": "CRAFT",
+      "slug": "craft",
+      "short_description": "Uses Capability, Role, Action, Format, and Tone for precise, professional, or technical tasks.",
+      "description": "CRAFT framework uses Capability to define AI's expertise, Role to assign persona, Action to specify task, Format to set output structure, and Tone to define voice, creating precise prompts for professional or technical tasks requiring high standards, and the analogy is like crafting a fine sword where you select the metal's strength (Capability), the blacksmith's role (Role), the forging process (Action), the blade shape (Format), and the finish polish (Tone).",
+      "examples": [
+        "User Prompt: Write report using CRAFT. \nAI Response: Capability: Analyst. Role: Expert. Action: Summarize. Format: Sections. Tone: Formal.",
+        "User Prompt: Design system using CRAFT. \nAI Response: Capability: Engineer. Role: Architect. Action: Plan. Format: Diagram. Tone: Technical.",
+        "User Prompt: Create strategy using CRAFT. \nAI Response: Capability: Strategist. Role: Consultant. Action: Develop. Format: Outline. Tone: Persuasive."
+      ],
+      "advantages": [
+        "Enhances precision for professional tasks, improving prompt efficiency.",
+        "Reduces vagueness with action and format, making outputs structured.",
+        "Boosts tone control, aligning prompts with high-stakes needs."
+      ]
+    },
+    {
+      "name": "APE",
+      "slug": "ape",
+      "short_description": "Structures prompts with Action, Purpose, and Expectation for focused and time-sensitive queries.",
+      "description": "APE framework structures prompts with Action to define task, Purpose to state goal, and Expectation to specify output, offering a focused approach for no-nonsense and time-sensitive queries where clarity and brevity are paramount, and the analogy is like a pilot's checklist with the takeoff procedure (Action), the flight destination (Purpose), and the landing requirements (Expectation) for a safe journey.",
+      "examples": [
+        "User Prompt: Plan day using APE. \nAI Response: Action: Schedule. Purpose: Productivity. Expectation: Hourly list.",
+        "User Prompt: Solve issue using APE. \nAI Response: Action: Troubleshoot. Purpose: Fix. Expectation: Steps.",
+        "User Prompt: Generate idea using APE. \nAI Response: Action: Brainstorm. Purpose: Innovation. Expectation: 3 ideas."
+      ],
+      "advantages": [
+        "Improves focus for quick tasks, enhancing prompt efficiency.",
+        "Reduces fluff with purpose, making outputs direct.",
+        "Boosts expectation clarity, aligning prompts with specific needs."
+      ]
+    },
+    {
+      "name": "PECRA",
+      "slug": "pecra",
+      "short_description": "Organizes prompts with Purpose, Expectation, Context, Request, and Audience for persuasive communication.",
+      "description": "PECRA framework organizes prompts with Purpose to define goal, Expectation to set output, Context to provide background, Request to specify action, and Audience to target reader, ensuring user-centered and persuasive responses in communication-heavy tasks, and the analogy is like writing a letter where you state the reason (Purpose), what you hope to achieve (Expectation), the backstory (Context), the ask (Request), and who it's for (Audience) for a compelling message.",
+      "examples": [
+        "User Prompt: Write ad using PECRA. \nAI Response: Purpose: Sell. Expectation: Persuasive. Context: Product. Request: Draft. Audience: Customers.",
+        "User Prompt: Teach lesson using PECRA. \nAI Response: Purpose: Educate. Expectation: Clear. Context: Topic. Request: Explain. Audience: Students.",
+        "User Prompt: Plan event using PECRA. \nAI Response: Purpose: Organize. Expectation: Detailed. Context: Occasion. Request: Schedule. Audience: Guests."
+      ],
+      "advantages": [
+        "Enhances persuasion for targeted tasks, improving prompt efficiency.",
+        "Reduces misalignment with audience, making outputs relevant.",
+        "Boosts clarity with expectation, aligning prompts with user-centered needs."
+      ]
+    },
+    {
+      "name": "OSCAR",
+      "slug": "oscar",
+      "short_description": "Uses Objective, Scope, Constraints, Assumptions, and Results for structured, project-oriented tasks.",
+      "description": "OSCAR framework uses Objective to state goal, Scope to define boundaries, Constraints to list limits, Assumptions to set premises, and Results to specify expected output, providing a structured approach for planning and realistic outputs in project-oriented tasks, and the analogy is like mapping a treasure hunt with the prize (Objective), the area to search (Scope), the obstacles (Constraints), the starting assumptions (Assumptions), and the found treasure (Results) for a successful adventure.",
+      "examples": [
+        "User Prompt: Build app using OSCAR. \nAI Response: Objective: Create. Scope: Features. Constraints: Budget. Assumptions: Tech. Results: Plan.",
+        "User Prompt: Solve puzzle using OSCAR. \nAI Response: Objective: Find solution. Scope: Rules. Constraints: Time. Assumptions: Logic. Results: Answer.",
+        "User Prompt: Design project using OSCAR. \nAI Response: Objective: Develop. Scope: Timeline. Constraints: Resources. Assumptions: Team. Results: Outcome."
+      ],
+      "advantages": [
+        "Improves planning for realistic tasks, enhancing prompt efficiency.",
+        "Reduces risks with constraints, making outputs feasible.",
+        "Boosts outcome focus, aligning prompts with result-oriented needs."
+      ]
+    },
+    {
+      "name": "RASCE",
+      "slug": "rasce",
+      "short_description": "Employs Reasoning, Analysis, Synthesis, Correction, and Evaluation for a thorough self-improving process.",
+      "description": "RASCE framework employs Reasoning to think through logic, Analysis to break down elements, Synthesis to combine insights, Correction to adjust errors, and Evaluation to assess quality, offering a thorough self-improving process for prompts requiring depth and refinement, and the analogy is like a scientist conducting research by hypothesizing (Reasoning), examining data (Analysis), forming conclusions (Synthesis), fixing mistakes (Correction), and validating results (Evaluation) for a solid theory.",
+      "examples": [
+        "User Prompt: Analyze data using RASCE. \nAI Response: Reasoning: Logic. Analysis: Break down. Synthesis: Combine. Correction: Fix. Evaluation: Assess.",
+        "User Prompt: Solve problem using RASCE. \nAI Response: Reasoning: Think. Analysis: Examine. Synthesis: Integrate. Correction: Adjust. Evaluation: Review.",
+        "User Prompt: Create plan using RASCE. \nAI Response: Reasoning: Plan. Analysis: Details. Synthesis: Build. Correction: Refine. Evaluation: Check."
+      ],
+      "advantages": [
+        "Enhances self-improvement in responses, improving prompt efficiency for iterative tasks.",
+        "Reduces errors with correction, making outputs accurate.",
+        "Boosts evaluation, aligning prompts with quality control needs."
+      ]
+    },
+    {
+      "name": "Reflection",
+      "slug": "reflection",
+      "short_description": "Directs the AI to review its own output and make improvements, fostering self-assessment.",
+      "description": "Reflection framework directs the AI to review its own output and make improvements, fostering a process of self-assessment that enhances quality and accuracy in tasks benefiting from iterative refinement, and the analogy is like a writer editing their draft by reading it back, identifying flaws, and revising for a polished piece.",
+      "examples": [
+        "User Prompt: Write story, then reflect. \nAI Response: Story: ... Reflection: Improve ending.",
+        "User Prompt: Solve math, then reflect. \nAI Response: Answer: 10. Reflection: Check calculation.",
+        "User Prompt: Plan day, then reflect. \nAI Response: Plan: ... Reflection: Add breaks."
+      ],
+      "advantages": [
+        "Improves quality through self-review, enhancing prompt efficiency for accurate tasks.",
+        "Reduces hallucinations, making outputs reliable.",
+        "Boosts iterative refinement, aligning prompts with quality needs."
+      ]
+    },
+    {
+      "name": "Flipped Interaction",
+      "slug": "flipped_interaction",
+      "short_description": "Inverts the standard query-response dynamic by having the AI ask clarifying questions.",
+      "description": "Flipped Interaction framework inverts the standard query-response dynamic by having the AI pose questions to clarify needs, leading to more accurate and tailored outputs in ambiguous or exploratory tasks, and the analogy is like a doctor asking symptoms before diagnosing, ensuring the treatment fits the patient's condition precisely.",
+      "examples": [
+        "User Prompt: Help with diet, flipped. \nAI Response: What is your goal? Response based on answer.",
+        "User Prompt: Teach coding, flipped. \nAI Response: What language? Response tailored.",
+        "User Prompt: Plan trip, flipped. \nAI Response: Where to? Response customized."
+      ],
+      "advantages": [
+        "Enhances interactivity, improving prompt efficiency for clarified tasks.",
+        "Reduces misunderstandings, making outputs relevant.",
+        "Boosts personalization, aligning prompts with user-specific needs."
+      ]
+    },
+    {
+      "name": "Bab",
+      "slug": "bab",
+      "short_description": "Constructs persuasive prompts by describing the Before, After, and Bridge for motivational tasks.",
+      "description": "BAB framework constructs persuasive prompts by describing the current state (Before), the desired state (After), and the transition (Bridge), making it effective for motivational or change-focused tasks where contrasting scenarios drive action, and the analogy is like a before-and-after photo in a makeover show, with the bridge being the transformation process that inspires viewers to try it.",
+      "examples": [
+        "User Prompt: Sell product using BAB. \nAI Response: Before: Problem. After: Solution. Bridge: Buy now.",
+        "User Prompt: Motivate fitness using BAB. \nAI Response: Before: Unfit. After: Healthy. Bridge: Exercise plan.",
+        "User Prompt: Improve habit using BAB. \nAI Response: Before: Procrastination. After: Productive. Bridge: Routine."
+      ],
+      "advantages": [
+        "Enhances persuasion for motivational tasks, improving prompt efficiency.",
+        "Reduces resistance with contrast, making outputs compelling.",
+        "Boosts action-oriented responses, aligning prompts with change needs."
+      ]
+    }
+  ]
+}
