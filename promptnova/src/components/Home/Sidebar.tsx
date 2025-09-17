@@ -41,6 +41,8 @@ export const Sidebar = () => {
         // Encrypt the key. CryptoJS handles salting automatically.
         const encrypted = CryptoJS.AES.encrypt(apiKeyInput, pwd).toString();
         localStorage.setItem(API_KEY_STORAGE_ITEM, encrypted);
+        // Save password to a cookie that expires in 1 day
+        document.cookie = `api_key_password=${pwd};max-age=${24 * 60 * 60};path=/;SameSite=Lax`;
         
         setIsKeySaved(true);
         setIsEditing(false);
@@ -68,6 +70,8 @@ export const Sidebar = () => {
             setApiKeyInput(decryptedKey);
             setIsEditing(true);
             setVerifiedPassword(pwd); // Store password for the save action
+            // Refresh the password cookie
+            document.cookie = `api_key_password=${pwd};max-age=${24 * 60 * 60};path=/;SameSite=Lax`;
             resetPrompt();
         } catch (e) {
             console.error("Decryption failed:", e);
@@ -92,6 +96,7 @@ export const Sidebar = () => {
             }
 
             localStorage.removeItem(API_KEY_STORAGE_ITEM);
+            document.cookie = 'api_key_password=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
             setIsKeySaved(false);
             setApiKeyInput('');
             setIsEditing(true);
@@ -129,6 +134,8 @@ export const Sidebar = () => {
             // This is an update after editing. We have the verified password.
             const encrypted = CryptoJS.AES.encrypt(apiKeyInput, verifiedPassword).toString();
             localStorage.setItem(API_KEY_STORAGE_ITEM, encrypted);
+            // Refresh the password cookie
+            document.cookie = `api_key_password=${verifiedPassword};max-age=${24 * 60 * 60};path=/;SameSite=Lax`;
             
             setIsEditing(false);
             setVerifiedPassword(null);

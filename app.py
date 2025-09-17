@@ -1,27 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from src.models.prompt_schema import PromptSchema
-from src.models.typesSchema import RefineRequest
 from src.chains.pipeline import PromptPipeline
+from src.config import GOOGLE_API_KEY
+from Crypto.Cipher import AES
+from Crypto.Hash import MD5
+from Crypto.Util.Padding import unpad
+import base64
 from src.logger import logger
-from src.agents.types.zero_shot import ZeroShot
-from src.agents.types.one_shot import OneShot
-from src.agents.types.chain_of_thought import ChainOfThought
-from src.agents.types.tree_of_thought import TreeOfThought
-from src.agents.types.react import ReAct
-from src.agents.types.in_context import InContext
-from src.agents.types.emotion import Emotion
-from src.agents.types.role import Role
-from src.agents.types.few_shot import FewShot
-from src.agents.types.self_consistency import SelfConsistency
-from src.agents.types.meta_prompting import MetaPrompting
-from src.agents.types.least_to_most import LeastToMost
-from src.agents.types.multi_task import MultiTask
-from src.agents.types.task_decomposition import TaskDecomposition
-from src.agents.types.constrained import Constrained
-from src.agents.types.generated_knowledge import GeneratedKnowledge
-from src.agents.types.automatic_prompt_engineering import AutomaticPromptEngineering
-from src.agents.types.directional_stimulus import DirectionalStimulus
-import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -42,71 +27,77 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def decrypt_cryptojs_aes(encrypted_str: str, password: str) -> str:
+    """Decrypts a string encrypted with CryptoJS.AES.encrypt(message, password)."""
+    try:
+        encrypted_data = base64.b64decode(encrypted_str)
+        # CryptoJS format: "Salted__" (8 bytes) + salt (8 bytes) + ciphertext
+        if encrypted_data[:8] != b'Salted__':
+            raise ValueError("Invalid encrypted data: missing salt prefix.")
+        
+        salt = encrypted_data[8:16]
+        ciphertext = encrypted_data[16:]
+        
+        # EVP_BytesToKey logic to derive key and IV from password and salt.
+        # CryptoJS uses MD5 by default. It concatenates hashes until key+iv length is met.
+        key_iv = b''
+        temp = b''
+        password_bytes = password.encode('utf-8')
+        
+        while len(key_iv) < 48: # 32 bytes for key (AES-256) + 16 bytes for IV
+            md5 = MD5.new()
+            if temp:
+                md5.update(temp)
+            md5.update(password_bytes)
+            md5.update(salt)
+            temp = md5.digest()
+            key_iv += temp
+            
+        key = key_iv[:32]
+        iv = key_iv[32:48]
+        
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        decrypted_padded = cipher.decrypt(ciphertext)
+        decrypted = unpad(decrypted_padded, AES.block_size).decode('utf-8')
+        return decrypted
+    except Exception as e:
+        logger.error(f"CryptoJS AES decryption failed: {e}")
+        raise ValueError("Decryption failed. Invalid API key or password.")
 
 @app.post("/refine", response_model=PromptSchema)
 async def refine_prompt(prompt_input: PromptSchema):
+    
     """Refines a user prompt using selected styles and framework."""
     try:
+        print(f"Received api_key: {prompt_input.api_key}")
+        print(f"Received password: {prompt_input.password}")
         logger.info(f"Received request: user_input={prompt_input.user_input}..., styles={prompt_input.style}, framework={prompt_input.framework}")
-        pipeline = PromptPipeline()
-        result = await pipeline.run(prompt_input)
+        decrypted_api_key = None
+        if prompt_input.api_key:
+            if not prompt_input.password:
+                raise HTTPException(status_code=400, detail="API key is present, but no password was provided.")
+            try:
+                # Decrypt the API key using the password provided from the cookie.
+                # This logic is compatible with CryptoJS.AES.encrypt used on the frontend.
+                decrypted_api_key = decrypt_cryptojs_aes(prompt_input.api_key, prompt_input.password)
+                print(f"Decrypted API Key: {decrypted_api_key}")
+                logger.info("Successfully decrypted and using user-provided API key.")
+            except (ValueError, IndexError, TypeError) as e:
+                logger.error(f"Failed to decrypt API key: {e}")
+                raise HTTPException(status_code=400, detail="Invalid API key or password.")
+        
+        final_api_key = decrypted_api_key or GOOGLE_API_KEY
+        if not final_api_key:
+            logger.error("API key not found in request or environment.")
+            raise HTTPException(status_code=401, detail="API key not found. Please provide it in the settings or set GOOGLE_API_KEY in your environment.")
+
+        pipeline = PromptPipeline(api_key=final_api_key)
+        # Create a new PromptSchema instance for the pipeline, excluding auth fields.
+        pipeline_input_data = prompt_input.model_dump(exclude={'api_key', 'password', 'output_str'})
+        pipeline_prompt = PromptSchema(**pipeline_input_data)
+        result = await pipeline.run(pipeline_prompt)
         logger.info(f"Refined prompt: {result.output_str}...")
         return result
-    except Exception as e:
-        logger.error(f"Error refining prompt: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error refining prompt: {str(e)}")
-
-@app.post("/refine/style")
-async def refine_by_style(input_data: RefineRequest):
-    """Refine using a single style with style-specific optional fields."""
-    try:
-        style = input_data.style
-        agents = {
-            "zero_shot": ZeroShot(),
-            "one_shot": OneShot(),
-            "cot": ChainOfThought(),
-            "tot": TreeOfThought(),
-            "react": ReAct(),
-            "in_context": InContext(),
-            "emotion": Emotion(),
-            "role": Role(),
-            "few_shot": FewShot(),
-            "self_consistency": SelfConsistency(),
-            "meta_prompting": MetaPrompting(),
-            "least_to_most": LeastToMost(),
-            "multi_task": MultiTask(),
-            "task_decomposition": TaskDecomposition(),
-            "constrained": Constrained(),
-            "generated_knowledge": GeneratedKnowledge(),
-            "ape": AutomaticPromptEngineering(),
-            "directional_stimulus": DirectionalStimulus(),
-        }
-        agent = agents.get(style)
-        if not agent:
-            raise HTTPException(status_code=400, detail=f"Unsupported style: {style}")
-
-        # Build kwargs from input based on style
-        kwargs = {}
-        if style == "role":
-            kwargs["role_persona"] = getattr(input_data, "role_persona", None)
-        elif style == "few_shot":
-            kwargs["examples"] = getattr(input_data, "examples", None)
-        elif style == "cot":
-            kwargs["steps"] = getattr(input_data, "steps", None)
-        elif style == "in_context":
-            kwargs["context"] = getattr(input_data, "context", None)
-        elif style == "emotion":
-            kwargs["emotion"] = getattr(input_data, "emotion", None)
-        # Add more mappings as needed for other styles
-
-        # Remove None values
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-
-        logger.info(f"Refining by style: {style} with options: {kwargs}")
-        refined = await asyncio.to_thread(agent.refine, input_data.user_input, **kwargs)
-        return {"style": style, "refined": refined}
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"Error refining prompt: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error refining prompt: {str(e)}")

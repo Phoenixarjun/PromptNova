@@ -1,11 +1,12 @@
 from langchain.prompts import PromptTemplate
 from ..prompt_agent import PromptAgent
+from typing import Optional
 
 class TreeOfThought(PromptAgent):
     """Agent for Tree of Thoughts Prompting style."""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, api_key: Optional[str] = None):
+        super().__init__(api_key=api_key)
     
     def refine(self, user_input: str, branches: int = 3, **kwargs) -> str:
         """Refines the user input using Tree of Thoughts prompting."""

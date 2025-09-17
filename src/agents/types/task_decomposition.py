@@ -1,12 +1,12 @@
 from langchain.prompts import PromptTemplate
 from ..prompt_agent import PromptAgent
-from typing import List
+from typing import List, Optional
 
 class TaskDecomposition(PromptAgent):
     """Agent for Task Decomposition Prompting style."""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, api_key: Optional[str] = None):
+        super().__init__(api_key=api_key)
     
     def refine(self, user_input: str, sub_steps: List[str] = None, **kwargs) -> str:
         """Refines the user input using Task Decomposition prompting."""

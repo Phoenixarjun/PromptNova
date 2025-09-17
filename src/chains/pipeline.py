@@ -1,5 +1,5 @@
 from langgraph.graph import StateGraph, END
-from typing import TypedDict, Dict, List
+from typing import TypedDict, Dict, List, Optional
 from src.models.prompt_schema import PromptSchema
 from src.agents.types.zero_shot import ZeroShot
 from src.agents.types.one_shot import OneShot
@@ -19,6 +19,21 @@ from src.agents.types.constrained import Constrained
 from src.agents.types.generated_knowledge import GeneratedKnowledge
 from src.agents.types.automatic_prompt_engineering import AutomaticPromptEngineering
 from src.agents.types.directional_stimulus import DirectionalStimulus
+from src.agents.types.chain_of_verification import ChainOfVerification
+from src.agents.types.skeleton_of_thought import SkeletonOfThought
+from src.agents.types.graph_of_thoughts import GraphOfThoughts
+from src.agents.types.plan_and_solve import PlanAndSolve
+from src.agents.types.maieutic_prompting import MaieuticPrompting
+from src.agents.types.reflexion import Reflexion as ReflexionType
+from src.agents.types.chain_of_density import ChainOfDensity
+from src.agents.types.active_prompt import ActivePrompt
+from src.agents.types.retrieval_augmented_prompting import RetrievalAugmentedPrompting
+from src.agents.types.multi_agent_debate import MultiAgentDebate
+from src.agents.types.persona_switching import PersonaSwitching
+from src.agents.types.scaffolded_prompting import ScaffoldedPrompting
+from src.agents.types.deliberation_prompting import DeliberationPrompting
+from src.agents.types.context_expansion import ContextExpansion
+from src.agents.types.goal_oriented_prompting import GoalOrientedPrompting
 from src.agents.frameworks.co_star import CoStar
 from src.agents.frameworks.tcef import Tcef
 from src.agents.frameworks.crispe import Crispe
@@ -32,6 +47,18 @@ from src.agents.frameworks.rasce import Rasce
 from src.agents.frameworks.reflection import Reflection
 from src.agents.frameworks.flipped_interaction import FlippedInteraction
 from src.agents.frameworks.bab import Bab
+from src.agents.frameworks.prompt_framework import PromptFramework
+from src.agents.frameworks.soap import Soap
+from src.agents.frameworks.clear import Clear
+from src.agents.frameworks.prism import Prism
+from src.agents.frameworks.grips import Grips
+from src.agents.frameworks.app_framework import AppFramework
+from src.agents.frameworks.scope import Scope
+from src.agents.frameworks.tool_oriented_prompting import ToolOrientedPrompting
+from src.agents.frameworks.neuro_symbolic_prompting import NeuroSymbolicPrompting
+from src.agents.frameworks.dynamic_context_windows import DynamicContextWindows
+from src.agents.frameworks.meta_cognitive_prompting import MetaCognitivePrompting
+from src.agents.frameworks.prompt_ensembles import PromptEnsembles
 from src.agents.self_correction import SelfCorrection
 from src.agents.refine_agent import RefineAgent
 from src.agents.final_prompt import FinalPrompt
@@ -48,45 +75,72 @@ class PromptState(TypedDict):
     iteration: int
 
 class PromptPipeline:
-    def __init__(self):
+    def __init__(self, api_key: Optional[str] = None):
         self.max_iterations = 3
         self.score_threshold = 90
         self.agents = {
-            "zero_shot": ZeroShot(),
-            "one_shot": OneShot(),
-            "cot": ChainOfThought(),
-            "tot": TreeOfThought(),
-            "react": ReAct(),
-            "in_context": InContext(),
-            "emotion": Emotion(),
-            "role": Role(),
-            "few_shot": FewShot(),
-            "self_consistency": SelfConsistency(),
-            "meta_prompting": MetaPrompting(),
-            "least_to_most": LeastToMost(),
-            "multi_task": MultiTask(),
-            "task_decomposition": TaskDecomposition(),
-            "constrained": Constrained(),
-            "generated_knowledge": GeneratedKnowledge(),
-            "automatic_prompt_engineering": AutomaticPromptEngineering(),
-            "directional_stimulus": DirectionalStimulus(),
-            "co_star": CoStar(),
-            "tcef": Tcef(),
-            "crispe": Crispe(),
-            "rtf": Rtf(),
-            "ice": Ice(),
-            "craft": Craft(),
-            "ape": Ape(),
-            "pecra": Pecra(),
-            "oscar": Oscar(),
-            "rasce": Rasce(),
-            "reflection": Reflection(),
-            "flipped_interaction": FlippedInteraction(),
-            "bab": Bab()
+            "zero_shot": ZeroShot(api_key=api_key),
+            "one_shot": OneShot(api_key=api_key),
+            "cot": ChainOfThought(api_key=api_key),
+            "tot": TreeOfThought(api_key=api_key),
+            "react": ReAct(api_key=api_key),
+            "in_context": InContext(api_key=api_key),
+            "emotion": Emotion(api_key=api_key),
+            "role": Role(api_key=api_key),
+            "few_shot": FewShot(api_key=api_key),
+            "self_consistency": SelfConsistency(api_key=api_key),
+            "meta_prompting": MetaPrompting(api_key=api_key),
+            "least_to_most": LeastToMost(api_key=api_key),
+            "multi_task": MultiTask(api_key=api_key),
+            "task_decomposition": TaskDecomposition(api_key=api_key),
+            "constrained": Constrained(api_key=api_key),
+            "generated_knowledge": GeneratedKnowledge(api_key=api_key),
+            "automatic_prompt_engineering": AutomaticPromptEngineering(api_key=api_key),
+            "directional_stimulus": DirectionalStimulus(api_key=api_key),
+            "chain_of_verification": ChainOfVerification(api_key=api_key),
+            "skeleton_of_thought": SkeletonOfThought(api_key=api_key),
+            "graph_of_thoughts": GraphOfThoughts(api_key=api_key),
+            "plan_and_solve": PlanAndSolve(api_key=api_key),
+            "maieutic_prompting": MaieuticPrompting(api_key=api_key),
+            "reflexion_type": ReflexionType(api_key=api_key),
+            "chain_of_density": ChainOfDensity(api_key=api_key),
+            "active_prompt": ActivePrompt(api_key=api_key),
+            "retrieval_augmented_prompting": RetrievalAugmentedPrompting(api_key=api_key),
+            "multi_agent_debate": MultiAgentDebate(api_key=api_key),
+            "persona_switching": PersonaSwitching(api_key=api_key),
+            "scaffolded_prompting": ScaffoldedPrompting(api_key=api_key),
+            "deliberation_prompting": DeliberationPrompting(api_key=api_key),
+            "context_expansion": ContextExpansion(api_key=api_key),
+            "goal_oriented_prompting": GoalOrientedPrompting(api_key=api_key),
+            "co_star": CoStar(api_key=api_key),
+            "tcef": Tcef(api_key=api_key),
+            "crispe": Crispe(api_key=api_key),
+            "rtf": Rtf(api_key=api_key),
+            "ice": Ice(api_key=api_key),
+            "craft": Craft(api_key=api_key),
+            "ape": Ape(api_key=api_key),
+            "pecra": Pecra(api_key=api_key),
+            "oscar": Oscar(api_key=api_key),
+            "rasce": Rasce(api_key=api_key),
+            "reflection": Reflection(api_key=api_key),
+            "flipped_interaction": FlippedInteraction(api_key=api_key),
+            "bab": Bab(api_key=api_key),
+            "prompt": PromptFramework(api_key=api_key),
+            "soap": Soap(api_key=api_key),
+            "clear": Clear(api_key=api_key),
+            "prism": Prism(api_key=api_key),
+            "grips": Grips(api_key=api_key),
+            "app": AppFramework(api_key=api_key),
+            "scope": Scope(api_key=api_key),
+            "tool_oriented_prompting": ToolOrientedPrompting(api_key=api_key),
+            "neuro_symbolic_prompting": NeuroSymbolicPrompting(api_key=api_key),
+            "dynamic_context_windows": DynamicContextWindows(api_key=api_key),
+            "meta_cognitive_prompting": MetaCognitivePrompting(api_key=api_key),
+            "prompt_ensembles": PromptEnsembles(api_key=api_key)
         }
-        self.self_correction = SelfCorrection()
-        self.refine_agent = RefineAgent()
-        self.final_prompt = FinalPrompt()
+        self.self_correction = SelfCorrection(api_key=api_key)
+        self.refine_agent = RefineAgent(api_key=api_key)
+        self.final_prompt = FinalPrompt(api_key=api_key)
         self.graph = self._build_graph()
 
     def _build_graph(self):

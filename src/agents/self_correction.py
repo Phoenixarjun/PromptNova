@@ -1,6 +1,6 @@
 from langchain.prompts import PromptTemplate
 from .prompt_agent import PromptAgent
-from typing import List, Dict
+from typing import List, Dict, Optional
 import json
 import re
 from src.logger import logger
@@ -8,8 +8,8 @@ from src.logger import logger
 class SelfCorrection(PromptAgent):
     """Agent for self-correction evaluation."""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, api_key: Optional[str] = None):
+        super().__init__(api_key=api_key)
     
     async def refine(self, user_input: str, **kwargs) -> str:
         """Placeholder refine method to satisfy abstract base class requirement."""

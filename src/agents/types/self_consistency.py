@@ -1,11 +1,12 @@
 from langchain.prompts import PromptTemplate
 from ..prompt_agent import PromptAgent
+from typing import Optional
 
 class SelfConsistency(PromptAgent):
     """Agent for Self-Consistency Prompting style."""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, api_key: Optional[str] = None):
+        super().__init__(api_key=api_key)
     
     def refine(self, user_input: str, samples: int = 3, **kwargs) -> str:
         """Refines the user input using Self-Consistency prompting."""

@@ -287,6 +287,276 @@
         "Reduces off-topic responses, making outputs relevant.",
         "Boosts precision, aligning prompts with directional goals."
       ]
+    },
+    {
+      "name": "Chain-of-Verification (CoVe)",
+      "slug": "chain_of_verification",
+      "short_description": "A prompting style where the model generates an answer and then verifies its reasoning step-by-step to catch errors and ensure accuracy.",
+      "description": "Chain-of-Verification (CoVe) acts as an internal quality control mechanism for AI responses, mimicking a rigorous editorial review process. The model first drafts a complete answer based on the query, then systematically breaks it down into individual claims, facts, or logical steps. For each element, it cross-references against known knowledge, potential sources, or internal consistency checks, flagging discrepancies and suggesting corrections. This iterative verification loop not only minimizes factual inaccuracies and logical fallacies but also enhances transparency by documenting the self-audit trail. It's particularly valuable in domains requiring high reliability, such as scientific explanations, legal summaries, or technical troubleshooting, where unchecked errors could mislead users.",
+      "examples": [
+        "User Prompt: Explain quantum computing using CoVe. \nAI Response: Initial answer: Quantum bits process multiple states simultaneously via superposition. Verification: Claim 1 - Superposition confirmed by quantum mechanics principles (e.g., Schrödinger's equation); Claim 2 - Entanglement accurate per Bell's theorem; Overall consistency: No contradictions with current research.",
+        "User Prompt: Solve equation 2x + 3 = 13 using CoVe. \nAI Response: Initial solution: x=5. Verification: Step 1 - Subtract 3 from both sides: 2x=10, mathematically sound; Step 2 - Divide by 2: x=5, algebraically correct; Final check - Substitute x=5 back: 2(5)+3=13, equation balances perfectly.",
+        "User Prompt: Fact-check the date of the first Moon landing using CoVe. \nAI Response: Initial: July 20, 1969. Verification: Date corroborated by NASA archives and Apollo 11 mission logs; Supporting evidence - Armstrong's quote timestamped; No conflicting historical records found.",
+        "User Prompt: Analyze stock trends using CoVe. \nAI Response: Initial: Upward trend due to earnings. Verification: Data from Q2 reports valid; Correlation with market indices strong; Potential bias in short-term view noted and adjusted for long-term factors."
+      ],
+      "advantages": [
+        "Drastically reduces factual errors and hallucinations through built-in self-scrutiny, fostering greater user trust.",
+        "Promotes transparent reasoning by outlining verification steps, making outputs educational and auditable.",
+        "Efficient for precision-demanding tasks like coding, mathematics, and research, minimizing the need for external fact-checking.",
+        "Scalable for complex queries, as it modularizes verification to handle layered arguments without overwhelming the model."
+      ]
+    },
+    {
+      "name": "Skeleton-of-Thought (SoT)",
+      "slug": "skeleton_of_thought",
+      "short_description": "The model creates an outline or 'skeleton' of the response first, then fills in the details for better structure and coherence.",
+      "description": "Skeleton-of-Thought (SoT) emulates the architectural planning phase of construction, where a bare framework is erected before adding substance. The AI begins by generating a high-level outline—key sections, headings, or logical branches—tailored to the query's scope. This skeleton serves as a roadmap, ensuring comprehensive coverage and sequential flow. Subsequently, the model populates each segment with detailed content, drawing on relevant knowledge while adhering to the structure. This method excels in preventing disjointed or incomplete outputs, especially for expansive formats like academic papers, business plans, or software architectures, by enforcing upfront organization and iterative refinement.",
+      "examples": [
+        "User Prompt: Write a blog article on AI ethics using SoT. \nAI Response: Skeleton: Introduction (hook and thesis), Ethical Concerns (privacy, bias), Solutions (regulations, audits), Conclusion (future outlook). Filled: Introduction - Start with a real-world scandal; Ethical Concerns - Bullet points on data misuse cases.",
+        "User Prompt: Design a Python code structure for a web scraper using SoT. \nAI Response: Skeleton: Imports and Setup, URL Fetching Function, Data Parsing Module, Output Handler, Error Management. Filled: Imports - requests, BeautifulSoup; URL Fetching - def fetch(url): response = requests.get(url).",
+        "User Prompt: Plan a marketing campaign for a new app using SoT. \nAI Response: Skeleton: Target Audience, Key Messages, Channels, Timeline, Metrics. Filled: Target Audience - Demographics: 18-35 urban tech enthusiasts; Channels - Social media and email blasts.",
+        "User Prompt: Outline a research paper on climate change using SoT. \nAI Response: Skeleton: Abstract, Literature Review, Methodology, Results, Discussion. Filled: Methodology - Surveys and data modeling; Results - Graphs showing 2°C rise projections."
+      ],
+      "advantages": [
+        "Imposes inherent structure on outputs, reducing meandering and ensuring all critical aspects are addressed.",
+        "Accelerates content creation for lengthy tasks by separating planning from execution, allowing for easier revisions.",
+        "Enhances scalability for collaborative or iterative workflows, as the skeleton can be shared and expanded collaboratively.",
+        "Improves overall coherence and readability, making it ideal for professional documents or educational materials."
+      ]
+    },
+    {
+      "name": "Graph-of-Thoughts (GoT)",
+      "slug": "graph_of_thoughts",
+      "short_description": "Explores multiple connected reasoning paths like a web, merging ideas for richer, non-linear problem-solving.",
+      "description": "Graph-of-Thoughts (GoT) transforms linear reasoning into a dynamic network, akin to a neural synapse map where ideas branch, intersect, and reinforce each other. Rather than following a single chain, the model generates parallel reasoning paths—each exploring a distinct angle or hypothesis—and then identifies connections, synergies, or conflicts between them. Promising nodes are aggregated, pruned weak links, and synthesized into an optimal solution. This approach thrives in multifaceted scenarios like strategic planning, innovation brainstorming, or diagnostic troubleshooting, where isolated paths might miss emergent insights from interconnections.",
+      "examples": [
+        "User Prompt: Brainstorm sustainable business ideas using GoT. \nAI Response: Paths: Renewable energy gadgets, Zero-waste packaging; Merge: Eco-packaging integrated with solar-powered delivery; Best: App-linked reusable packaging system with incentives.",
+        "User Prompt: Solve a logic puzzle with multiple clues using GoT. \nAI Response: Paths: Suspect A alibi, Weapon timeline; Connect: Alibi overlaps with B's motive; Selected: Culprit C via timeline contradiction.",
+        "User Prompt: Develop a software architecture for a scalable app using GoT. \nAI Response: Paths: Microservices vs. Monolith, Database choices; Link: Microservices with NoSQL for flexibility; Optimal: Hybrid model with caching layer.",
+        "User Prompt: Ethical dilemma resolution using GoT. \nAI Response: Paths: Utilitarian view, Deontological rules; Intersect: Balanced policy respecting rights while maximizing benefit; Final: Phased implementation with feedback."
+      ],
+      "advantages": [
+        "Captures non-linear complexities by linking diverse ideas, uncovering solutions linear methods overlook.",
+        "Fosters creativity through idea fusion, ideal for innovation or multi-constraint optimization.",
+        "Provides robustness via multiple paths, allowing fallback options if one route fails.",
+        "Visualizes reasoning as a graph, aiding in explanation and debugging of decision processes."
+      ]
+    },
+    {
+      "name": "Plan-and-Solve (PS / PS+)",
+      "slug": "plan_and_solve",
+      "short_description": "Splits tasks into a planning phase first, followed by execution, with optional self-checks for enhanced accuracy.",
+      "description": "Plan-and-Solve (PS) divides cognitive labor into deliberate preparation and targeted action, resembling a general strategizing before battle. In the planning stage, the model outlines objectives, sub-tasks, resources, and potential pitfalls, creating a blueprint. The solve phase then implements this plan sequentially, referencing it to maintain alignment. PS+ extends this with reflexive evaluations at milestones, adjusting as needed. This duality shines in protracted endeavors like algorithm design, project roadmaps, or narrative construction, ensuring methodical progress and adaptability.",
+      "examples": [
+        "User Prompt: Code a tic-tac-toe game using PS. \nAI Response: Plan: 1. Board representation (3x3 list), 2. Player input validation, 3. Win condition checker, 4. Main loop. Solve: Board = [[' ']*3 for _ in range(3)]; def check_win(board): rows, cols, diags checked.",
+        "User Prompt: Draft a business proposal using PS. \nAI Response: Plan: Executive summary, Market analysis, Financial projections, Call to action. Solve: Summary - 200 words on opportunity; Analysis - SWOT table with data.",
+        "User Prompt: Organize a weekly meal prep using PS+. \nAI Response: Plan: Grocery list, Recipes selection, Storage tips. Solve: List - Veggies, proteins; Recipes - 3 salads. Check: Nutritional balance achieved.",
+        "User Prompt: Troubleshoot network issue using PS. \nAI Response: Plan: Check connections, Restart devices, Test speeds. Solve: Connections verified; Restarted router—issue resolved."
+      ],
+      "advantages": [
+        "Decomposes overwhelming tasks into manageable phases, boosting completion rates and precision.",
+        "Inherent adaptability via planning allows mid-course corrections, reducing dead ends.",
+        "Transparent process aids debugging and learning, as plans serve as audit trails.",
+        "PS+ variant amplifies reliability for critical applications like engineering or consulting."
+      ]
+    },
+    {
+      "name": "Maieutic Prompting",
+      "slug": "maieutic_prompting",
+      "short_description": "Employs Socratic questioning to clarify ambiguities and elicit precise requirements before finalizing responses.",
+      "description": "Maieutic Prompting, inspired by Socrates' midwifery of ideas, involves the model posing targeted questions to itself or the user to unearth underlying assumptions, refine scopes, and illuminate blind spots. This dialogic probing transforms nebulous queries into crystalline specifications, fostering deeper understanding and tailored outputs. It's invaluable for consultative roles, requirement gathering, or exploratory learning, where surfacing latent needs prevents misaligned solutions and enriches the eventual response.",
+      "examples": [
+        "User Prompt: Suggest a vacation plan using Maieutic. \nAI Response: Questions: Preferred activities (relax or adventure)? Group size? Budget range? Refined: For family of 4 under $2000, beach relaxation. Plan: Costa Rica resorts with kid activities.",
+        "User Prompt: Help debug a Python script using Maieutic. \nAI Response: Questions: What error message? Input examples? Expected vs. actual output? Refined: IndexError on list access. Fix: Add bounds check with if i < len(lst).",
+        "User Prompt: Recommend books on philosophy using Maieutic. \nAI Response: Questions: Beginner or advanced? Themes (ethics, existence)? Reading time? Refined: Intro to ethics. Suggestions: 'Sophie's World' and 'The Republic'.",
+        "User Prompt: Career advice using Maieutic. \nAI Response: Questions: Current role satisfaction? Long-term goals? Skills gaps? Refined: Transition to tech. Steps: Online courses, networking events."
+      ],
+      "advantages": [
+        "Unpacks vague inputs into actionable clarity, minimizing misinterpretations.",
+        "Promotes collaborative refinement, enhancing user engagement and satisfaction.",
+        "Builds comprehensive responses by addressing unstated facets proactively.",
+        "Ideal for advisory agents, turning consultations into insightful dialogues."
+      ]
+    },
+    {
+      "name": "Reflexion / Self-Refine",
+      "slug": "reflexion_type",
+      "short_description": "The AI iteratively reviews and refines its output through self-critique loops to elevate quality.",
+      "description": "Reflexion embodies metacognitive refinement, where the model generates an initial output, then adopts a critical lens to evaluate its strengths, weaknesses, coherence, and alignment with the query. Based on this introspection—scoring aspects like clarity, completeness, or creativity—it iterates revisions, incorporating improvements until convergence on an optimal version. This closed-loop polishing is akin to an author's multiple drafts, yielding sophisticated results with minimal external input, particularly suited to creative writing, code optimization, or analytical reports.",
+      "examples": [
+        "User Prompt: Refine a persuasive essay on remote work using Reflexion. \nAI Response: Draft 1: Benefits listed. Reflect: Lacks counterarguments. Refine: Added rebuttals to productivity concerns with data; Strengthened conclusion.",
+        "User Prompt: Optimize SQL query using Reflexion. \nAI Response: Initial: Basic SELECT. Reflect: Inefficient joins. Refine: Added indexes hint, reduced to subquery; Performance: 50% faster simulated.",
+        "User Prompt: Polish a product description using Reflexion. \nAI Response: Draft: Features bullet. Reflect: Too dry. Refine: Wove in storytelling, sensory language; Engagement score up.",
+        "User Prompt: Self-edit a poem using Reflexion. \nAI Response: Version 1: Raw lines. Reflect: Rhythm inconsistent. Refine: Meter adjusted, metaphors deepened for emotional impact."
+      ],
+      "advantages": [
+        "Autonomously elevates output quality, simulating expert revision without human oversight.",
+        "Iterative nature uncovers subtle flaws, leading to nuanced and robust final products.",
+        "Time-efficient for high-volume generation, as self-refinement scales with model capacity.",
+        "Versatile across domains, from prose to programming, fostering continuous improvement."
+      ]
+    },
+    {
+      "name": "Chain-of-Density (CoD)",
+      "slug": "chain_of_density",
+      "short_description": "Progressively compresses information into denser summaries while retaining essential entities and facts.",
+      "description": "Chain-of-Density (CoD) iteratively refines verbose content into concise yet informationally rich abstracts, like distilling wine to its essence. Starting with a full paraphrase, each chain link identifies and incorporates overlooked key entities (names, dates, concepts) while pruning redundancies, aiming for maximal density—measured by entities per sentence—without sacrificing fidelity. This graduated compression is perfect for executive digests, academic abstracts, or knowledge extraction, balancing brevity with completeness.",
+      "examples": [
+        "User Prompt: Summarize a news article on AI regulations using CoD. \nAI Response: Chain 1: EU proposes AI Act for high-risk systems. Chain 2: Act targets facial recognition, mandates audits; Entities: EU, AI Act, 2026 enforcement. Final: Dense: EU AI Act (2026) regulates high-risk tech like biometrics via transparency audits.",
+        "User Prompt: Abstract a scientific paper on gene editing using CoD. \nAI Response: Chain 1: CRISPR advances. Chain 2: Off-target effects minimized; Key: Cas9 variants, 95% accuracy. Final: CRISPR-Cas9 refinements cut off-target edits to <5%, enabling precise therapeutic applications.",
+        "User Prompt: TL;DR a financial report using CoD. \nAI Response: Chain 1: Q3 earnings overview. Chain 2: Revenue $1.2B, up 15%; Entities: TechCo, EBITDA margin 30%. Final: TechCo Q3: $1.2B revenue (+15%), 30% EBITDA amid supply chain wins.",
+        "User Prompt: Condense a book review using CoD. \nAI Response: Chain 1: Plot and themes. Chain 2: Strengths in character arc; Entities: Author X, dystopian setting. Final: X's dystopia shines via flawed hero's redemption, though pacing lags mid-act."
+      ],
+      "advantages": [
+        "Achieves succinctness without entity loss, ideal for time-strapped readers.",
+        "Systematic density buildup ensures progressive informativeness over crude cuts.",
+        "Supports knowledge graph construction by highlighting core nouns and relations.",
+        "Applicable to vast corpora, streamlining literature reviews or intel briefs."
+      ]
+    },
+    {
+      "name": "Active-Prompt (Adaptive)",
+      "slug": "active_prompt",
+      "short_description": "Dynamically adapts prompt strategies based on interim feedback or scoring for optimized performance.",
+      "description": "Active-Prompt operates as an evolutionary optimizer, where the model experiments with prompt variants—altering phrasing, adding constraints, or shifting roles—and evaluates their efficacy via self-scoring (e.g., relevance, coherence metrics) or simulated feedback. Top performers guide subsequent iterations, converging on a superior formulation. This meta-adaptation suits dynamic environments like personalized tutoring or A/B content testing, where one-size-fits-all prompts fall short.",
+      "examples": [
+        "User Prompt: Generate marketing ideas using Active-Prompt. \nAI Response: Variant 1: Basic brainstorm (score: 6/10, too generic). Adapt: Add industry focus. Variant 2: SaaS-specific (score: 9/10). Output: Viral referral loops, AI demos.",
+        "User Prompt: Adapt style for user feedback using Active-Prompt. \nAI Response: Initial: Formal tone (feedback: stiff). Adapt: Conversational. Refined: 'Hey, let's dive into why this rocks!'",
+        "User Prompt: Optimize math explanation using Active-Prompt. \nAI Response: Variant: Step-by-step (low engagement). Adapt: Analogies added. Final: 'Like balancing a seesaw...' with visuals.",
+        "User Prompt: Tune recipe generation using Active-Prompt. \nAI Response: Base: Standard (score: bland). Adapt: Dietary cues. Output: Vegan twists with substitutions scored high."
+      ],
+      "advantages": [
+        "Self-optimizes for context-specific excellence, outpacing static prompts.",
+        "Incorporates real-time feedback loops, enabling continual enhancement.",
+        "Efficient for experimentation, automating what humans do manually.",
+        "Boosts versatility in variable tasks like personalization or testing."
+      ]
+    },
+    {
+      "name": "Retrieval-Augmented Prompting (RAP)",
+      "slug": "retrieval_augmented_prompting",
+      "short_description": "Integrates external retrieved knowledge into prompts to ground responses in up-to-date, factual data.",
+      "description": "Retrieval-Augmented Prompting (RAP) augments the model's intrinsic knowledge with on-demand fetches from databases, web searches, or corpora, injecting relevant snippets directly into the prompt context. This hybrid approach mitigates hallucinations by anchoring generations in verifiable sources, while enabling real-time relevance. It's cornerstone for knowledge-intensive agents like virtual assistants or research tools, where freshness and accuracy are paramount.",
+      "examples": [
+        "User Prompt: Explain latest climate policies using RAP. \nAI Response: Retrieved: UN 2025 report. Grounded: Paris Agreement updates mandate 45% emissions cut by 2030, with carbon pricing incentives.",
+        "User Prompt: Product comparison with RAP. \nAI Response: Fetched: Review aggregates. Analysis: iPhone 16 vs. Galaxy S25—battery life favors Samsung (20h vs. 18h), per CNET tests.",
+        "User Prompt: Historical fact-check using RAP. \nAI Response: Sources: Britannica, archives. Verified: WWII ended Sept 2, 1945; V-J Day details corroborated.",
+        "User Prompt: Recipe adaptation using RAP. \nAI Response: Retrieved: Allergen swaps. Modified: Gluten-free lasagna with zucchini noodles, nutritional tweaks noted."
+      ],
+      "advantages": [
+        "Extinguishes fabrications by tethering to external verifiables, enhancing credibility.",
+        "Infuses currency, adapting to evolving information landscapes seamlessly.",
+        "Scales knowledge without retraining, via plug-and-play retrieval modules.",
+        "Empowers specialized domains, from legal to medical, with precise sourcing."
+      ]
+    },
+    {
+      "name": "Multi-Agent Debate / Consensus Prompting",
+      "slug": "multi_agent_debate",
+      "short_description": "Simulates debate among multiple AI personas to critically refine and converge on consensus answers.",
+      "description": "Multi-Agent Debate orchestrates a virtual symposium, assigning distinct personas (e.g., skeptic, advocate, mediator) to argue positions, challenge assumptions, and synthesize a unified stance. Through rounds of rebuttals and integrations, biases erode, and robust conclusions emerge. This adversarial collaboration elevates reasoning depth, suiting contentious topics like policy analysis, ethical reviews, or innovation validation.",
+      "examples": [
+        "User Prompt: Debate AI safety measures using Multi-Agent. \nAI Response: Optimist: Rapid deployment. Pessimist: Existential risks. Consensus: Tiered regulations with audits, phased rollout.",
+        "User Prompt: Code review via Multi-Agent. \nAI Response: Developer: Functional. Security Expert: Vulnerabilities. Consensus: Patch injections, add auth layers; Revised code provided.",
+        "User Prompt: Investment strategy debate. \nAI Response: Bull: Growth stocks. Bear: Recession hedge. Consensus: 60/40 portfolio with diversified ETFs.",
+        "User Prompt: Moral quandary on privacy vs. security. \nAI Response: Libertarian: Absolute privacy. Utilitarian: Balanced surveillance. Consensus: Opt-in data use with transparency laws."
+      ],
+      "advantages": [
+        "Amplifies critical thinking via diverse viewpoints, surfacing hidden flaws.",
+        "Yields balanced, defensible outputs through dialectical synthesis.",
+        "Mimics human deliberation affordably, for solo decision support.",
+        "Robust for ambiguity, as consensus thresholds ensure agreement quality."
+      ]
+    },
+    {
+      "name": "Persona Switching / Multi-Role Prompting",
+      "slug": "persona_switching",
+      "short_description": "Fluidly shifts between AI personas or roles within a interaction for multifaceted perspectives.",
+      "description": "Persona Switching enables the model to don and doff roles dynamically—e.g., toggling from mentor to devil's advocate—infusing responses with layered insights. This role-playing carousel captures stakeholder diversity or narrative voices, enriching simulations, counseling, or content creation. Transitions are seamless, guided by query cues, maintaining contextual continuity while broadening analytical breadth.",
+      "examples": [
+        "User Prompt: Review a business plan with persona switches. \nAI Response: As Investor: High ROI potential. As Competitor: Market saturation risks. Synthesis: Pivot to niche for edge.",
+        "User Prompt: Simulate a team meeting on project delays. \nAI Response: PM: Timeline extension. Engineer: Resource crunch. Consensus: Hire temp, reprioritize features.",
+        "User Prompt: Write a dialogue in multiple voices. \nAI Response: Hero: Bold quests. Villain: Cunning traps. Flow: Tense exchange building to alliance twist.",
+        "User Prompt: Career coaching with switches. \nAI Response: Mentor: Skill gaps. Peer: Motivation dips. Advice: Balanced plan with accountability buddy."
+      ],
+      "advantages": [
+        "Emulates polyphonic discourse, yielding holistic, empathetic outputs.",
+        "Enhances engagement through varied tones, suiting storytelling or therapy.",
+        "Flexes for scenario modeling, like negotiations or user journeys.",
+        "Prevents echo-chamber thinking by enforcing perspective pluralism."
+      ]
+    },
+    {
+      "name": "Scaffolded / Progressive Prompting",
+      "slug": "scaffolded_prompting",
+      "short_description": "Deconstructs complex tasks into incremental, supported steps that build cumulatively.",
+      "description": "Scaffolded Prompting erects temporary supports for intricate constructions, breaking queries into granular sub-prompts—each advancing the whole while providing contextual scaffolding from priors. As proficiency mounts, scaffolds retract, yielding autonomous completion. This pedagogical layering mitigates overload, fostering mastery in tutorials, multi-module developments, or skill-building sequences.",
+      "examples": [
+        "User Prompt: Build a novel chapter-by-chapter using Scaffolded. \nAI Response: Step 1: World-build outline. Step 2: Character arcs. Step 3: Scene drafts. Cumulative: Ch1 integrates all.",
+        "User Prompt: Develop a machine learning model progressively. \nAI Response: Step 1: Data prep script. Step 2: Feature engineering. Step 3: Train/eval loop. Full: End-to-end pipeline.",
+        "User Prompt: Learn guitar basics scaffolded. \nAI Response: Step 1: Chord shapes. Step 2: Simple strumming. Step 3: Song application. Progression: From tabs to full play.",
+        "User Prompt: Research paper via steps. \nAI Response: Step 1: Thesis. Step 2: Sources annotated. Step 3: Sections drafted. Final: Cohesive manuscript."
+      ],
+      "advantages": [
+        "Mitigates complexity paralysis by incrementalizing, ensuring steady advancement.",
+        "Facilitates error localization, as steps are isolatable for fixes.",
+        "Mirrors human learning curves, effective for education or onboarding.",
+        "Modular design allows pausing/resuming, suiting episodic interactions."
+      ]
+    },
+    {
+      "name": "Deliberation / Double-Pass Prompting",
+      "slug": "deliberation_prompting",
+      "short_description": "Executes a rapid initial generation followed by a reflective second pass for refinement.",
+      "description": "Deliberation Prompting invokes dual cognition: a swift first pass harvests raw ideas, unencumbered by perfectionism, then a contemplative second pass interrogates, augments, and polishes—infusing depth, resolving inconsistencies, or amplifying strengths. This rhythmic cadence, like rough sketch to finished portrait, cost-effectively doubles efficacy for succinct tasks, from queries to synopses.",
+      "examples": [
+        "User Prompt: Summarize a podcast episode using Double-Pass. \nAI Response: Pass 1: Main topics noted. Pass 2: Connected themes, added quotes; Refined: Coherent narrative arc.",
+        "User Prompt: Brainstorm app features deliberately. \nAI Response: Pass 1: Raw list. Pass 2: Prioritized by user value, feasibility; Output: Top 5 with justifications.",
+        "User Prompt: Craft a tweet thread double-pass. \nAI Response: Pass 1: Bullet points. Pass 2: Engaging hooks, calls-to-action; Thread: Punchy, viral-ready.",
+        "User Prompt: Solve a riddle with deliberation. \nAI Response: Pass 1: Guesses. Pass 2: Logical elimination; Solution: 'Echo' via clue mapping."
+      ],
+      "advantages": [
+        "Economically boosts sophistication, rivaling multi-iteration at low cost.",
+        "Uncovers oversights in the reflective phase, enhancing thoroughness.",
+        "Agile for quick-turnaround needs like social media or FAQs.",
+        "Builds deliberation habit, transferable to broader reasoning."
+      ]
+    },
+    {
+      "name": "Context Expansion / Compression",
+      "slug": "context_expansion",
+      "short_description": "Dynamically adjusts prompt context volume—expanding for depth or compressing for focus—within token limits.",
+      "description": "Context Management toggles between elaboration and economy: expansion weaves ancillary details, precedents, or hypotheticals to enrich nuance; compression distills to salient excerpts, excising noise via summarization or prioritization. This adaptive resizing navigates finite windows, sustaining coherence in protracted dialogues or document analyses, optimizing for relevance over raw volume.",
+      "examples": [
+        "User Prompt: Maintain long therapy session context using Expansion. \nAI Response: Expanded: Recalled prior traumas, linked to current anxiety; Empathetic response tailored deeply.",
+        "User Prompt: Compress legal doc for review. \nAI Response: Distilled: Core clauses only, key terms bolded; Retained: Liabilities, without boilerplate.",
+        "User Prompt: Evolve story across turns with Management. \nAI Response: Compressed history: Plot pivots summarized; Expanded new: Vivid scene details.",
+        "User Prompt: Chain research queries adaptively. \nAI Response: Expanded initial: Broad sources. Compressed follow-up: Focused on outliers."
+      ],
+      "advantages": [
+        "Maximizes token utility, averting dilution or truncation pitfalls.",
+        "Preserves continuity in extended exchanges, like support tickets.",
+        "Tailors density to task—lavish for creativity, lean for extraction.",
+        "Automates housekeeping, freeing cognitive bandwidth for core reasoning."
+      ]
+    },
+    {
+      "name": "Goal-Oriented Prompting",
+      "slug": "goal_oriented_prompting",
+      "short_description": "Structures prompts around explicit objectives, with progress tracking for directed, measurable execution.",
+      "description": "Goal-Oriented Prompting anchors generations in a north star: delineating success criteria, sub-goals, and checkpoints upfront, then monitoring adherence via interim assessments. This teleological framing channels efforts, akin to project charters, mitigating scope creep in goal-driven pursuits like task automation, habit formation, or campaign orchestration.",
+      "examples": [
+        "User Prompt: Goal: Complete fitness challenge plan. \nAI Response: Objectives: 5k run in 30 days. Milestones: Week1 baseline, Week4 test. Plan: Progressive runs, nutrition tips; Track: App integration.",
+        "User Prompt: Achieve sales target via oriented prompting. \nAI Response: Goal: 20% uplift. Steps: Lead gen, follow-ups. Progress: Weekly KPIs dashboard mockup.",
+        "User Prompt: Learn language basics goal-oriented. \nAI Response: Objective: Conversational fluency. Checkpoints: Vocab 500, dialogues. Schedule: Daily 20min, apps recommended.",
+        "User Prompt: Optimize workflow to goal. \nAI Response: Target: Halve processing time. Metrics: Before/after logs. Actions: Automate repeats, delegate low-value."
+      ],
+      "advantages": [
+        "Laser-focuses outputs, aligning with intent to curb irrelevance.",
+        "Quantifiable progress engenders motivation and adjustability.",
+        "Frameworks multi-phase endeavors, like agile sprints.",
+        "Measurable outcomes validate efficacy, informing future tuning."
+      ]
     }
   ],
   "frameworks": [
@@ -496,6 +766,222 @@
         "Enhances persuasion for motivational tasks, improving prompt efficiency.",
         "Reduces resistance with contrast, making outputs compelling.",
         "Boosts action-oriented responses, aligning prompts with change needs."
+      ]
+    },
+    {
+      "name": "PROMPT Framework",
+      "slug": "prompt-framework",
+      "short_description": "A comprehensive acronym template—Purpose, Role, Output, Mode, Parameters, Tone—for holistic prompt design.",
+      "description": "PROMPT Framework dissects prompt anatomy: Purpose crystallizes intent, Role embodies expertise, Output blueprints form, Mode contextualizes scenario, Parameters bounds feasibility, Tone infuses personality. This mnemonic scaffold ensures prompts are multifaceted yet cohesive, like a director's shot list, yielding predictable excellence across communicative tasks from memos to monologues.",
+      "examples": [
+        "User Prompt: Craft team update email via PROMPT. \nAI Response: Purpose: Align on progress. Role: Project lead. Output: Structured paras. Mode: Professional email. Parameters: 300 words. Tone: Motivational—'Great strides ahead!'",
+        "User Prompt: Generate algorithm explanation using PROMPT. \nAI Response: Purpose: Teach basics. Role: Educator. Output: Step diagram. Mode: Interactive tutorial. Parameters: Beginner level. Tone: Encouraging analogies.",
+        "User Prompt: Design ad campaign via PROMPT. \nAI Response: Purpose: Boost engagement. Role: Creative director. Output: Slogan + visuals. Mode: Social media. Parameters: 3 variants. Tone: Energetic and inclusive.",
+        "User Prompt: Write policy brief with PROMPT. \nAI Response: Purpose: Inform decisions. Role: Analyst. Output: Bullet exec sum. Mode: Report. Parameters: 1000 words. Tone: Objective, data-driven."
+      ],
+      "advantages": [
+        "Holistically addresses prompt elements, preempting omissions.",
+        "Mnemonic aids recall, streamlining ad-hoc crafting.",
+        "Universal applicability, from casual chats to formal docs.",
+        "Promotes uniformity, easing team collaborations on AI interactions."
+      ]
+    },
+    {
+      "name": "SOAP Framework",
+      "slug": "soap-framework",
+      "short_description": "Streamlines prompts via Subject (topic), Objective (goal), Audience (recipients), Parameters (specs) for targeted clarity.",
+      "description": "SOAP Framework mirrors clinical notes for precision: Subject pins the thematic core, Objective articulates desired action, Audience tailors register, Parameters impose practical delimiters. This quartet distills prompts to essentials, ensuring audience resonance and objective fidelity, paramount for bespoke content like client pitches or learner materials.",
+      "examples": [
+        "User Prompt: Blog on digital nomadism using SOAP. \nAI Response: Subject: Remote work lifestyles. Objective: Inspire transitions. Audience: Office workers. Parameters: 800 words, engaging anecdotes.",
+        "User Prompt: Executive summary via SOAP. \nAI Response: Subject: Quarterly finances. Objective: Highlight variances. Audience: Board. Parameters: 1-page, charts included.",
+        "User Prompt: Tutorial video script with SOAP. \nAI Response: Subject: Basic coding. Objective: Build first app. Audience: Newbies. Parameters: 10min, simple language.",
+        "User Prompt: Sales email using SOAP. \nAI Response: Subject: CRM software. Objective: Schedule demo. Audience: SMB owners. Parameters: Personalized, under 200 words."
+      ],
+      "advantages": [
+        "Centers audience and aim, amplifying pertinence and persuasion.",
+        "Concise structure curbs verbosity, honing efficiency.",
+        "Versatile for media-spanning outputs, from emails to broadcasts.",
+        "Facilitates quick iterations, as components are independently tweakable."
+      ]
+    },
+    {
+      "name": "CLEAR Framework",
+      "slug": "clear-framework",
+      "short_description": "Ensures prompts are Concise, Logical, Explicit, Actionable, Relevant via a quality checklist.",
+      "description": "CLEAR Framework vigilant ly curates prompts: Concise trims superfluity, Logical sequences rationale, Explicit banishes ambiguity, Actionable mandates executability, Relevant aligns to essence. This litmus test exorcises prompt pathologies—vagueness, disarray—birthing crisp directives that elicit incisive AI responses, indispensable for operational instructions or analytical directives.",
+      "examples": [
+        "User Prompt: Instructions for report gen using CLEAR. \nAI Response: Concise: 3 core steps. Logical: Chronological order. Explicit: Define metrics. Actionable: 'Run query X'. Relevant: Tie to KPI goals.",
+        "User Prompt: Query refinement via CLEAR. \nAI Response: Explicit: 'List 5 options with pros/cons'. Actionable: Feasible data sources. Logical: Criteria first. Concise: No fluff intros.",
+        "User Prompt: Feedback form design with CLEAR. \nAI Response: Relevant: User experience focus. Logical: Open to close questions. Explicit: Scale 1-10. Actionable: Submit button spec.",
+        "User Prompt: Recipe prompt CLEARed. \nAI Response: Concise: Ingredients list. Logical: Prep then cook. Explicit: Temps/times. Relevant: Dietary filters applied."
+      ],
+      "advantages": [
+        "Eradicates common pitfalls, yielding precise, unambiguous engagements.",
+        "Checklist rigor instills discipline, elevating baseline prompt savvy.",
+        "Accelerates troubleshooting, as flaws map to CLEAR tenets.",
+        "Broadly prophylactic, safeguarding diverse prompt genres."
+      ]
+    },
+    {
+      "name": "PRISM Framework",
+      "slug": "prism-framework",
+      "short_description": "Prisms tasks through Perspective, Role, Input, Style, Medium for refracted, creative multiplicity.",
+      "description": "PRISM Framework diffracts singular prompts into spectral variants: Perspective tilts worldview, Role incarnates archetype, Input furnishes fodder, Style modulates expression, Medium dictates vessel. This prismatic decomposition begets kaleidoscopic outputs—diverse yet harmonious—tailored for ideation, branding, or multimedia, where monochromatic approaches pall.",
+      "examples": [
+        "User Prompt: Ad concept via PRISM. \nAI Response: Perspective: Futuristic. Role: Visionary designer. Input: Eco-tech product. Style: Poetic. Medium: Instagram reel script.",
+        "User Prompt: Analysis report with PRISM. \nAI Response: Perspective: Optimistic growth. Role: Strategist. Input: Market data. Style: Narrative. Medium: Infographic deck.",
+        "User Prompt: Poem generation PRISM. \nAI Response: Perspective: Melancholic. Role: Romantic bard. Input: Lost love theme. Style: Sonnet form. Medium: Text with audio cues.",
+        "User Prompt: Pitch deck using PRISM. \nAI Response: Perspective: Disruptive. Role: Entrepreneur. Input: Startup stats. Style: Bold visuals. Medium: SlideShare."
+      ],
+      "advantages": [
+        "Catalyzes creativity via dimensional exploration, averting sterility.",
+        "Harmonizes elements for cohesive yet varied ensembles.",
+        "Suits polymorphic media, from verse to visuals.",
+        "Inspires combinatorial play, unearthing serendipitous synergies."
+      ]
+    },
+    {
+      "name": "GRIPS Framework",
+      "slug": "grips-framework",
+      "short_description": "Navigates reasoning with Goal, Role, Input, Process, Scope for scoped, procedural depth.",
+      "description": "GRIPS Framework charts deliberative voyages: Goal beacons terminus, Role endows authority, Input stocks provisions, Process delineates itinerary, Scope demarcates horizons. This navigational sextant tames labyrinthine inferences, ensuring bounded, traceable cognition for endeavors like diagnostics, forecasting, or protocol devising.",
+      "examples": [
+        "User Prompt: Market analysis via GRIPS. \nAI Response: Goal: Forecast Q4 trends. Role: Economist. Input: Sales CSV. Process: Trendline fit, anomaly detect. Scope: Top 3 sectors, 6 months.",
+        "User Prompt: Workflow automation with GRIPS. \nAI Response: Goal: Streamline approvals. Role: Ops manager. Input: Current flowchart. Process: Bottleneck ID, redesign. Scope: Under 5 steps.",
+        "User Prompt: Ethical review GRIPS. \nAI Response: Goal: Assess bias. Role: Ethicist. Input: Algorithm specs. Process: Audit steps. Scope: Training data only.",
+        "User Prompt: Lesson plan using GRIPS. \nAI Response: Goal: Teach calculus. Role: Professor. Input: Syllabus. Process: Lecture, exercise. Scope: Single unit, 1hr."
+      ],
+      "advantages": [
+        "Containment via scope prevents proliferative drift.",
+        "Process transparency demystifies reasoning, aiding audits.",
+        "Role infusion elevates domain authenticity.",
+        "Goal primacy sustains momentum toward closure."
+      ]
+    },
+    {
+      "name": "APP Framework",
+      "slug": "app-framework",
+      "short_description": "Lean Ask, Provide, Perform triad for expeditious, transactional prompting.",
+      "description": "APP Framework distills to bare necessities: Ask declares desire, Provide proffers prerequisites, Perform prescribes delivery. This minimalist manifesto expedites ephemeral interchanges—queries, commands, closures—eschewing ornament for alacrity, akin to a telegraphic dispatch in high-velocity exchanges.",
+      "examples": [
+        "User Prompt: Quick weather check via APP. \nAI Response: Ask: Forecast NYC. Provide: Current date. Perform: Bullet temps, rain chance.",
+        "User Prompt: Bug fix request APP. \nAI Response: Ask: Resolve crash. Provide: Error log. Perform: Patched code snippet + test.",
+        "User Prompt: Idea spark with APP. \nAI Response: Ask: 3 hacks for productivity. Provide: Remote work context. Perform: Numbered list, brief why.",
+        "User Prompt: Translation task APP. \nAI Response: Ask: English to French. Provide: Sentence. Perform: Direct render, pronunciation guide."
+      ],
+      "advantages": [
+        "Velocity-optimized for snap decisions or micro-tasks.",
+        "Sparsity minimizes misfires in constrained contexts.",
+        "Performative closure ensures closure without lingering.",
+        "Easily memorized, for on-the-fly invocations."
+      ]
+    },
+    {
+      "name": "SCOPE Framework",
+      "slug": "scope-framework",
+      "short_description": "Circumscribes endeavors with Situation, Constraints, Objectives, Persona, Execution for bounded orchestration.",
+      "description": "SCOPE Framework erects palisades around ambitions: Situation sketches terrain, Constraints chart perils, Objectives hoist banners, Persona assumes mantle, Execution marshals maneuvers. This bastion blueprint fortifies grand designs—campaigns, overhauls, ventures—against entropy, prescribing vigilant stewardship within delineated domains.",
+      "examples": [
+        "User Prompt: Product launch SCOPE. \nAI Response: Situation: Competitive market entry. Constraints: $50k budget. Objectives: 10k users Month1. Persona: CMO. Execution: Phased teasers, beta invites.",
+        "User Prompt: Crisis response plan via SCOPE. \nAI Response: Situation: Data breach. Constraints: 48hr window. Objectives: Contain, notify. Persona: CISO. Execution: Isolate, audit logs.",
+        "User Prompt: Curriculum redesign with SCOPE. \nAI Response: Situation: Outdated syllabus. Constraints: Semester timeline. Objectives: 20% engagement boost. Persona: Dean. Execution: Modular revamp, pilot tests.",
+        "User Prompt: Event planning SCOPE. \nAI Response: Situation: Hybrid conference. Constraints: 200 attendees. Objectives: 90% satisfaction. Persona: Organizer. Execution: Agenda draft, vendor RFPs."
+      ],
+      "advantages": [
+        "Demarcates feasible realms, quelling overreach.",
+        "Persona vivifies execution with apt heuristics.",
+        "Constraints forge realism into aspirational molds.",
+        "Situation grounding roots abstractions in actuality."
+      ]
+    },
+    {
+      "name": "Tool-Oriented Prompting (TOP)",
+      "slug": "tool-oriented-prompting-top",
+      "short_description": "Interleaves natural reasoning with dynamic tool invocations for augmented, actionable capabilities.",
+      "description": "Tool-Oriented Prompting (TOP) hybridizes discourse with instrumental agency: discerning need, the model summons auxiliaries—APIs, calculators, retrievers—interposing their yields to propel inference. This symphonic orchestration, evoking a conductor wielding batons, amplifies prowess beyond native confines, animating agents for empirical empiricism in computations, verifications, or orchestrations.",
+      "examples": [
+        "User Prompt: Generate sales report TOP. \nAI Response: Invoke: Google Sheets API. Yield: Pulled metrics. Reasoning: Trends analyzed; Viz: Auto-chart embedded.",
+        "User Prompt: Verify historical claim with TOP. \nAI Response: Tool: Wikipedia fetch. Result: Corroborated entry. Augmented: Citation integrated, context enriched.",
+        "User Prompt: Calculate investment ROI TOP. \nAI Response: Call: Financial calc lib. Output: 12% projected. Chain: Sensitivity analysis appended.",
+        "User Prompt: Image analysis task TOP. \nAI Response: Tool: Vision API. Insight: Objects detected. Response: Descriptive narrative with tags."
+      ],
+      "advantages": [
+        "Transcends model limits via external sinews, enabling veridical feats.",
+        "Seamless chaining forges compound competencies.",
+        "Error-resilient: Tools furnish fail-safes against confabulations.",
+        "Empowers agentic autonomy in pragmatic theaters."
+      ]
+    },
+    {
+      "name": "Neuro-Symbolic Prompting",
+      "slug": "neuro-symbolic-prompting",
+      "short_description": "Fuses probabilistic LLM intuition with symbolic rule enforcement for interpretable, veracious outputs.",
+      "description": "Neuro-Symbolic Prompting weds neural fluidity to logical rigor: the LLM conjectures, then symbolic engines—ontologies, theorem provers—adjudicate conformance, explicating derivations. This chimerical union, bridging intuition's leaps with deduction's chains, begets trustworthy artifacts in regulative realms like jurisprudence, pharmacopeia, or axiomatic proofs, where opacity imperils.",
+      "examples": [
+        "User Prompt: Compliance check via Neuro-Symbolic. \nAI Response: Hypothesis: Policy breach. Rule: GDPR clause eval. Verdict: Non-compliant; Rationale: Consent trail absent, remediation steps.",
+        "User Prompt: Theorem proof with Neuro-Symbolic. \nAI Response: Intuit: Pythagoras. Symbol: Axioms applied. Proof: Step-wise deduction, visualized diagram.",
+        "User Prompt: Diagnostic reasoning Neuro-Symbolic. \nAI Response: Neural: Symptom clusters. Symbolic: Causal graph. Diagnosis: Influenza likely, confidence 85%, tests prescribed.",
+        "User Prompt: Contract parsing. \nAI Response: LLM: Key terms. Rules: Ambiguity detector. Output: Annotated, risks flagged with clauses."
+      ],
+      "advantages": [
+        "Interpretability blooms from symbolic tracings, demystifying neural black boxes.",
+        "Veracity fortified against stochastic whimsies.",
+        "Scales formalism to fuzzy frontiers hybridly.",
+        "Pivotal for accountable AI in fiduciary fiducials."
+      ]
+    },
+    {
+      "name": "Dynamic Context Windows",
+      "slug": "dynamic-context-windows",
+      "short_description": "Intelligently resizes and reprioritizes dialogue history to sustain pertinence amid length constraints.",
+      "description": "Dynamic Context Windows vigilantly curates conversational memory: relevance heuristics—recency, thematic affinity, query linkage—rank and cull artifacts, inflating salients or eliding ephemera to honor token ceilings. This osmotic equilibrium, akin to a vigilant archivist, perpetuates fidelity in odysseys like chronicles or consulations, forestalling amnesia or cacophony.",
+      "examples": [
+        "User Prompt: Sustained therapy dialogue Dynamic. \nAI Response: Prioritized: Trauma motifs over pleasantries. Response: 'Building on your earlier share about loss...'",
+        "User Prompt: Iterative code collab with Windows. \nAI Response: Retained: Core functions, discarded debug chatter. Suggestion: 'Refine loop from v2...'",
+        "User Prompt: Evolving story co-creation. \nAI Response: Expanded arc threads, compressed setup recap. Continuation: Seamless plot weave.",
+        "User Prompt: Legal consult chain. \nAI Response: Focused: Precedent cites, faded initial queries. Advice: Tailored to latest clause."
+      ],
+      "advantages": [
+        "Perpetuates coherence sans caprice in marathons.",
+        "Relevance arbitrage maximizes informational yield.",
+        "Adaptive to flux, self-tuning sans fiat.",
+        "Underpins persistent personae in relational realms."
+      ]
+    },
+    {
+      "name": "Meta-Cognitive Prompting",
+      "slug": "meta-cognitive-prompting",
+      "short_description": "Prompts self-appraisal of confidence, rationale, and alternatives to temper certitude.",
+      "description": "Meta-Cognitive Prompting summons the model's inner sentinel: post-generation, it interrogates epistemic stance—certainty quanta, evidential bastions, counterfactuals—flagging frailties or soliciting buttresses. This introspective vigil, evoking a philosopher's doubt, inoculates against overreach, burnishing counsel in precarious pastures like prognoses or advisories.",
+      "examples": [
+        "User Prompt: Health tip meta-cognitive. \nAI Response: Advice: Hydrate daily. Confidence: 95%, per meta-studies; Caveat: Consult doc for conditions.",
+        "User Prompt: Prediction on trends. \nAI Response: Forecast: AI ubiquity. Rationale: Adoption curves; Alt: Regulatory halts, 20% prob.",
+        "User Prompt: Code suggestion with meta. \nAI Response: Snippet: Async fetch. Surety: High for Node; Low for legacy—test urged.",
+        "User Prompt: Ethical stance. \nAI Response: Position: Pro-sharing. Confidence: 70%, cultural variances; Explore: Opposing views outlined."
+      ],
+      "advantages": [
+        "Humility infusion curbs hubris, engendering calibrated trust.",
+        "Rationale revelation illuminates decision demesnes.",
+        "Alternative airing inoculates against tunnel visions.",
+        "Salutary for stakes where errancy exacts tolls."
+      ]
+    },
+    {
+      "name": "Prompt Ensembles",
+      "slug": "prompt-ensembles",
+      "short_description": "Parallelizes variant prompts, aggregating via fusion or selection for resilient, multifaceted yields.",
+      "description": "Prompt Ensembles convenes a prompt parliament: sundry formulations—diverse roles, phrasings, foci—convoke concurrently, their verdicts amalgamated through oracles like voting, weighting, or distillation. This choral consonance, mitigating idiosyncrasies, harvests collective sagacity for enigmas where solipsism stumbles, from auguries to artifices.",
+      "examples": [
+        "User Prompt: Content ideation ensemble. \nAI Response: Variants: Formal (depth), Casual (wit). Fusion: Hybrid essay, metrics blended.",
+        "User Prompt: Puzzle resolution. \nAI Response: Heuristics: Brute, Elegant. Weighted: Elegant wins, rationale appended.",
+        "User Prompt: Persona craft. \nAI Response: Archetypes: Hero, Anti. Consensus: Nuanced amalgam, traits tabulated.",
+        "User Prompt: Strategy moot. \nAI Response: Lenses: Short/long-term. Aggregate: Balanced roadmap, risks matrixed."
+      ],
+      "advantages": [
+        "Bias dilution via multiplicity, fortifying fortitude.",
+        "Augmented amplitude across axes, from acuity to allure.",
+        "Modular: Subsets summon for bespoke bouquets.",
+        "Empirical edge: Post-hoc audits refine repertoires."
       ]
     }
   ]
