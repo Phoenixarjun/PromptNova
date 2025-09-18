@@ -1,0 +1,99 @@
+import React from 'react';
+import { advancedTypeOptions, advancedFrameworkOptions } from './advancedOptionsConfig';
+
+interface AdvancedOptionsProps {
+  selectedTypes: string[];
+  selectedFramework: string | null;
+  advancedParams: any;
+  setAdvancedParams: (params: any) => void;
+}
+
+const renderField = (field: any, value: any, onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) => {
+  const commonProps = {
+    id: field.name,
+    name: field.name,
+    value: value || '',
+    onChange,
+    placeholder: field.description,
+    className: "w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white text-gray-800 text-sm"
+  };
+
+  if (field.type === 'textarea') {
+    return <textarea {...commonProps} rows={2} />;
+  }
+  return <input type={field.type} {...commonProps} />;
+};
+
+export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
+  selectedTypes,
+  selectedFramework,
+  advancedParams,
+  setAdvancedParams,
+}) => {
+  const handleTypeChange = (typeSlug: string, fieldName: string, value: string) => {
+    setAdvancedParams((prev: any) => ({
+      ...prev,
+      types: {
+        ...prev.types,
+        [typeSlug]: {
+          ...prev.types?.[typeSlug],
+          [fieldName]: value,
+        },
+      },
+    }));
+  };
+
+  const handleFrameworkChange = (frameworkSlug: string, fieldName: string, value: string) => {
+    setAdvancedParams((prev: any) => ({
+      ...prev,
+      framework: {
+        [frameworkSlug]: {
+          ...prev.framework?.[frameworkSlug],
+          [fieldName]: value,
+        },
+      },
+    }));
+  };
+
+  const activeTypeOptions = selectedTypes.map(slug => ({ slug, fields: advancedTypeOptions[slug as keyof typeof advancedTypeOptions] })).filter(opt => opt.fields?.length > 0);
+  const activeFrameworkOptions = selectedFramework ? { slug: selectedFramework, fields: advancedFrameworkOptions[selectedFramework as keyof typeof advancedFrameworkOptions] } : null;
+
+  return (
+    <div className="my-6 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+      <h3 className="text-lg font-bold text-gray-800 mb-4">Expert Configuration</h3>
+      <div className="space-y-6">
+        {activeTypeOptions.map(({ slug, fields }) => (
+          <div key={slug} className="p-4 border border-gray-200 rounded-md bg-white">
+            <h4 className="font-semibold text-gray-700 mb-2 capitalize">{slug.replace(/_/g, ' ')} Options</h4>
+            <div className="space-y-3">
+              {fields.map(field => (
+                <div key={field.name}>
+                  <label htmlFor={field.name} className="block text-xs font-medium text-gray-600 mb-1">{field.label}</label>
+                  {renderField(field, advancedParams.types?.[slug]?.[field.name], (e) => handleTypeChange(slug, field.name, e.target.value))}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {activeFrameworkOptions && activeFrameworkOptions.fields && (
+          <div className="p-4 border border-gray-200 rounded-md bg-white">
+            <h4 className="font-semibold text-gray-700 mb-2 capitalize">{activeFrameworkOptions.slug.replace(/_/g, ' ')} Framework Options</h4>
+            <div className="space-y-3">
+              {activeFrameworkOptions.fields.map(field => (
+                <div key={field.name}>
+                  <label htmlFor={field.name} className="block text-xs font-medium text-gray-600 mb-1">{field.label}</label>
+                  {renderField(field, advancedParams.framework?.[activeFrameworkOptions.slug]?.[field.name], (e) => handleFrameworkChange(activeFrameworkOptions.slug, field.name, e.target.value))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(activeTypeOptions.length === 0 && !activeFrameworkOptions?.fields) && (
+            <p className="text-sm text-gray-500 text-center py-4">Select a Type or Framework with advanced options to configure them here.</p>
+        )}
+      </div>
+    </div>
+  );
+};

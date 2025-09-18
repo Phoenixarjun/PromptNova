@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
-import Footer from '@/components/Footer';
+import { useState } from 'react';
+import  Footer  from '@/components/Footer';
 import { Form } from '@/components/Home/Form';
 import { HeroSection } from '@/components/Home/HeroSection';
 import { Sidebar } from '@/components/Home/Sidebar';
 import Navbar from '@/components/Navbar';
-import { ResultDisplay } from '@/components/Home/ResultDisplay';
 
 export default function Home() {
   const [result, setResult] = useState('');
@@ -21,12 +20,13 @@ export default function Home() {
         <main className="flex-1 bg-gray-50">
           <HeroSection />
           <Form
+            result={result}
             setResult={setResult}
             setIsLoading={setIsLoading}
             setError={setError}
             isLoading={isLoading}
+            error={error}
           />
-          <ResultDisplay result={result} isLoading={isLoading} error={error} />
         </main>
       </div>
       <Footer />

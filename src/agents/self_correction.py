@@ -1,15 +1,26 @@
 from langchain.prompts import PromptTemplate
 from .prompt_agent import PromptAgent
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Literal
 import json
 import re
 from src.logger import logger
+from pydantic import BaseModel, Field, conint
+
+class AgentGuidance(BaseModel):
+    key_points: List[str] = Field(description="List of issues found in the prompt.")
+    guidance: Dict[str, str] = Field(description="Improvement suggestions for each agent.")
+
+class SelfCorrectionResult(BaseModel):
+    status: Literal["yes", "no"]
+    agents: Optional[Dict[str, conint(ge=0, le=100)]] = Field(None, description="Percentage score for each agent.")
+    summary: Optional[AgentGuidance] = Field(None, description="Summary of issues if status is 'no'.")
 
 class SelfCorrection(PromptAgent):
     """Agent for self-correction evaluation."""
     
     def __init__(self, api_key: Optional[str] = None):
         super().__init__(api_key=api_key)
+        self.structured_llm = self.llm.with_structured_output(SelfCorrectionResult)
     
     async def refine(self, user_input: str, **kwargs) -> str:
         """Placeholder refine method to satisfy abstract base class requirement."""
@@ -19,24 +30,21 @@ class SelfCorrection(PromptAgent):
         """Evaluates the refined prompt against the original user prompt."""
         evaluation_template = PromptTemplate(
             input_variables=["prompt", "user_prompt", "agents"],
-            template="""You are an expert prompt evaluator with 25+ years of experience. Evaluate the following refined prompt to determine if it fully meets the intent and requirements expressed in the original user prompt. For each agent ({agents}), assign a percentage score (0-100%) indicating how well the refined prompt aligns with the user's intent using that agent's style. If all scores are 100%, return {{"status": "yes"}}. Otherwise, return a VALID JSON object: {{"status": "no", "agents": {{agent: score, ...}}, "summary": {{"key_points": ["list of issues"], "guidance": {{agent: "improvement suggestion", ...}}}}}}. Output ONLY the JSON object, no markdown, no extra text, no comments, and ensure all strings are properly escaped.
+            template="""You are an expert prompt evaluator with 25+ years of experience. Evaluate the following refined prompt to determine if it fully meets the intent and requirements expressed in the original user prompt. For each agent ({agents}), assign a percentage score (0-100%) indicating how well the refined prompt aligns with the user's intent using that agent's style. 
+            
+If all scores are 100%, set status to "yes". 
+Otherwise, set status to "no" and provide a score for each agent in the 'agents' field. Also provide a 'summary' with 'key_points' (a list of issues) and 'guidance' (a dictionary of improvement suggestions for each agent).
 
 Refined Prompt: {prompt}
 User Prompt: {user_prompt}
 Agents: {agents}"""
         )
-        chain = evaluation_template | self.llm
-        response = chain.invoke({"prompt": prompt, "user_prompt": user_prompt, "agents": ', '.join(agents)}).content
-        # Clean response to ensure valid JSON
-        response = re.sub(r'^```json\s*|\s*```$', '', response, flags=re.MULTILINE)  # Remove markdown
-        response = re.sub(r'[^\x00-\x7F]+', '', response)  # Remove non-ASCII characters
-        response = re.sub(r'(?<!\\)"', r'\"', response)  # Escape unescaped quotes
-        response = re.sub(r'\n+', ' ', response)  # Replace newlines with spaces
-        response = response.strip()
+        chain = evaluation_template | self.structured_llm
         try:
-            return json.loads(response)
-        except json.JSONDecodeError as e:
-            logger.error(f"Malformed JSON from LLM in SelfCorrection: {str(e)} - Response: {response}")
+            response = chain.invoke({"prompt": prompt, "user_prompt": user_prompt, "agents": ', '.join(agents)})
+            return response.dict()
+        except Exception as e:
+            logger.error(f"Structured output parsing failed in SelfCorrection: {e}", exc_info=True)
             return {
                 "status": "no",
                 "agents": {agent: 50 for agent in agents}, 

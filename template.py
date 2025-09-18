@@ -78,6 +78,11 @@ list_of_files = [
     f"src/agents/frameworks/prompt_ensembles.py",
 
     f"src/chains/pipeline.py",
+    f"src/chains/update_pipeline.py",
+
+    f"src/agents/feedback_analyzer_agent.py",
+    f"src/agents/prompt_updater_agent.py",
+    f"src/agents/update_evaluator.py",
 
     f"src/models/prompt_schema.py",
     f"src/models/typeSchema.py",

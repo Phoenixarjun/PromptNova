@@ -788,7 +788,7 @@
     },
     {
       "name": "SOAP Framework",
-      "slug": "soap-framework",
+      "slug": "soap",
       "short_description": "Streamlines prompts via Subject (topic), Objective (goal), Audience (recipients), Parameters (specs) for targeted clarity.",
       "description": "SOAP Framework mirrors clinical notes for precision: Subject pins the thematic core, Objective articulates desired action, Audience tailors register, Parameters impose practical delimiters. This quartet distills prompts to essentials, ensuring audience resonance and objective fidelity, paramount for bespoke content like client pitches or learner materials.",
       "examples": [
@@ -806,7 +806,7 @@
     },
     {
       "name": "CLEAR Framework",
-      "slug": "clear-framework",
+      "slug": "clear",
       "short_description": "Ensures prompts are Concise, Logical, Explicit, Actionable, Relevant via a quality checklist.",
       "description": "CLEAR Framework vigilant ly curates prompts: Concise trims superfluity, Logical sequences rationale, Explicit banishes ambiguity, Actionable mandates executability, Relevant aligns to essence. This litmus test exorcises prompt pathologies—vagueness, disarray—birthing crisp directives that elicit incisive AI responses, indispensable for operational instructions or analytical directives.",
       "examples": [
@@ -824,7 +824,7 @@
     },
     {
       "name": "PRISM Framework",
-      "slug": "prism-framework",
+      "slug": "prism",
       "short_description": "Prisms tasks through Perspective, Role, Input, Style, Medium for refracted, creative multiplicity.",
       "description": "PRISM Framework diffracts singular prompts into spectral variants: Perspective tilts worldview, Role incarnates archetype, Input furnishes fodder, Style modulates expression, Medium dictates vessel. This prismatic decomposition begets kaleidoscopic outputs—diverse yet harmonious—tailored for ideation, branding, or multimedia, where monochromatic approaches pall.",
       "examples": [
@@ -842,7 +842,7 @@
     },
     {
       "name": "GRIPS Framework",
-      "slug": "grips-framework",
+      "slug": "grips",
       "short_description": "Navigates reasoning with Goal, Role, Input, Process, Scope for scoped, procedural depth.",
       "description": "GRIPS Framework charts deliberative voyages: Goal beacons terminus, Role endows authority, Input stocks provisions, Process delineates itinerary, Scope demarcates horizons. This navigational sextant tames labyrinthine inferences, ensuring bounded, traceable cognition for endeavors like diagnostics, forecasting, or protocol devising.",
       "examples": [
@@ -860,7 +860,7 @@
     },
     {
       "name": "APP Framework",
-      "slug": "app-framework",
+      "slug": "app",
       "short_description": "Lean Ask, Provide, Perform triad for expeditious, transactional prompting.",
       "description": "APP Framework distills to bare necessities: Ask declares desire, Provide proffers prerequisites, Perform prescribes delivery. This minimalist manifesto expedites ephemeral interchanges—queries, commands, closures—eschewing ornament for alacrity, akin to a telegraphic dispatch in high-velocity exchanges.",
       "examples": [
@@ -878,7 +878,7 @@
     },
     {
       "name": "SCOPE Framework",
-      "slug": "scope-framework",
+      "slug": "scope",
       "short_description": "Circumscribes endeavors with Situation, Constraints, Objectives, Persona, Execution for bounded orchestration.",
       "description": "SCOPE Framework erects palisades around ambitions: Situation sketches terrain, Constraints chart perils, Objectives hoist banners, Persona assumes mantle, Execution marshals maneuvers. This bastion blueprint fortifies grand designs—campaigns, overhauls, ventures—against entropy, prescribing vigilant stewardship within delineated domains.",
       "examples": [
@@ -896,7 +896,7 @@
     },
     {
       "name": "Tool-Oriented Prompting (TOP)",
-      "slug": "tool-oriented-prompting-top",
+      "slug": "tool_oriented_prompting",
       "short_description": "Interleaves natural reasoning with dynamic tool invocations for augmented, actionable capabilities.",
       "description": "Tool-Oriented Prompting (TOP) hybridizes discourse with instrumental agency: discerning need, the model summons auxiliaries—APIs, calculators, retrievers—interposing their yields to propel inference. This symphonic orchestration, evoking a conductor wielding batons, amplifies prowess beyond native confines, animating agents for empirical empiricism in computations, verifications, or orchestrations.",
       "examples": [
@@ -914,7 +914,7 @@
     },
     {
       "name": "Neuro-Symbolic Prompting",
-      "slug": "neuro-symbolic-prompting",
+      "slug": "neuro_symbolic_prompting",
       "short_description": "Fuses probabilistic LLM intuition with symbolic rule enforcement for interpretable, veracious outputs.",
       "description": "Neuro-Symbolic Prompting weds neural fluidity to logical rigor: the LLM conjectures, then symbolic engines—ontologies, theorem provers—adjudicate conformance, explicating derivations. This chimerical union, bridging intuition's leaps with deduction's chains, begets trustworthy artifacts in regulative realms like jurisprudence, pharmacopeia, or axiomatic proofs, where opacity imperils.",
       "examples": [
@@ -932,7 +932,7 @@
     },
     {
       "name": "Dynamic Context Windows",
-      "slug": "dynamic-context-windows",
+      "slug": "dynamic_context_windows",
       "short_description": "Intelligently resizes and reprioritizes dialogue history to sustain pertinence amid length constraints.",
       "description": "Dynamic Context Windows vigilantly curates conversational memory: relevance heuristics—recency, thematic affinity, query linkage—rank and cull artifacts, inflating salients or eliding ephemera to honor token ceilings. This osmotic equilibrium, akin to a vigilant archivist, perpetuates fidelity in odysseys like chronicles or consulations, forestalling amnesia or cacophony.",
       "examples": [
@@ -950,7 +950,7 @@
     },
     {
       "name": "Meta-Cognitive Prompting",
-      "slug": "meta-cognitive-prompting",
+      "slug": "meta_cognitive_prompting",
       "short_description": "Prompts self-appraisal of confidence, rationale, and alternatives to temper certitude.",
       "description": "Meta-Cognitive Prompting summons the model's inner sentinel: post-generation, it interrogates epistemic stance—certainty quanta, evidential bastions, counterfactuals—flagging frailties or soliciting buttresses. This introspective vigil, evoking a philosopher's doubt, inoculates against overreach, burnishing counsel in precarious pastures like prognoses or advisories.",
       "examples": [
@@ -968,7 +968,7 @@
     },
     {
       "name": "Prompt Ensembles",
-      "slug": "prompt-ensembles",
+      "slug": "prompt_ensembles",
       "short_description": "Parallelizes variant prompts, aggregating via fusion or selection for resilient, multifaceted yields.",
       "description": "Prompt Ensembles convenes a prompt parliament: sundry formulations—diverse roles, phrasings, foci—convoke concurrently, their verdicts amalgamated through oracles like voting, weighting, or distillation. This choral consonance, mitigating idiosyncrasies, harvests collective sagacity for enigmas where solipsism stumbles, from auguries to artifices.",
       "examples": [

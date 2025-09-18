@@ -70,7 +70,6 @@ class PromptState(TypedDict):
     type_prompts: Dict[str, str]
     evaluation: Dict
     refined_prompts: Dict[str, str]
-    integrated_prompt: str
     output_str: str
     iteration: int
 
@@ -186,26 +185,19 @@ class PromptPipeline:
         async def integrate_node(state: PromptState) -> PromptState:
             prompts = state["refined_prompts"] if state["refined_prompts"] and all(state["refined_prompts"].values()) else state["type_prompts"]
             logger.info(f"Passing prompts to FinalPrompt.integrate: {prompts}")
-            integrated_prompt = self.final_prompt.integrate(
+            output_str = await self.final_prompt.integrate(
                 prompts,
                 state["type_prompts"],
-                state["prompt_input"].user_input
+                state["prompt_input"].user_input,
+                state["prompt_input"].framework
             )
-            logger.info(f"Integrated prompt: {integrated_prompt}")
-            return {"integrated_prompt": integrated_prompt}
-
-        async def framework_node(state: PromptState) -> PromptState:
-            framework_agent = self.agents[state["prompt_input"].framework]
-            output_str = framework_agent.refine(state["integrated_prompt"])
             logger.info(f"Final output: {output_str}")
             return {"output_str": output_str}
 
-        async def should_continue(state: PromptState) -> str:
+        def should_continue(state: PromptState) -> str:
             if state["evaluation"]["status"] == "yes":
                 return "integrate"
             if state["iteration"] >= self.max_iterations:
-                return "integrate"
-            if all(score >= self.score_threshold for score in state["evaluation"].get("agents", {}).values()):
                 return "integrate"
             return "refine"
 
@@ -213,7 +205,6 @@ class PromptPipeline:
         workflow.add_node("evaluate", evaluate_node)
         workflow.add_node("refine", refine_node)
         workflow.add_node("integrate", integrate_node)
-        workflow.add_node("framework", framework_node)
 
         workflow.set_entry_point("type_refine")
         workflow.add_edge("type_refine", "evaluate")
@@ -222,8 +213,7 @@ class PromptPipeline:
             "integrate": "integrate"
         })
         workflow.add_edge("refine", "evaluate")
-        workflow.add_edge("integrate", "framework")
-        workflow.add_edge("framework", END)
+        workflow.add_edge("integrate", END)
 
         return workflow.compile()
 
@@ -234,7 +224,6 @@ class PromptPipeline:
             "type_prompts": {},
             "evaluation": {},
             "refined_prompts": {},
-            "integrated_prompt": "",
             "output_str": "",
             "iteration": 0
         })

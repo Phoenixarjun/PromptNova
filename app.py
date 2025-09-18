@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException
-from src.models.prompt_schema import PromptSchema
+from fastapi import FastAPI, HTTPException, Depends
+from src.models.prompt_schema import PromptSchema, UpdatePromptSchema
 from src.chains.pipeline import PromptPipeline
+from src.chains.update_pipeline import UpdatePipeline
 from src.config import GOOGLE_API_KEY
 from Crypto.Cipher import AES
 from Crypto.Hash import MD5
@@ -8,6 +9,7 @@ from Crypto.Util.Padding import unpad
 import base64
 from src.logger import logger
 from fastapi.middleware.cors import CORSMiddleware
+import asyncio 
 
 
 
@@ -69,8 +71,8 @@ async def refine_prompt(prompt_input: PromptSchema):
     
     """Refines a user prompt using selected styles and framework."""
     try:
-        print(f"Received api_key: {prompt_input.api_key}")
-        print(f"Received password: {prompt_input.password}")
+        # print(f"Received api_key: {prompt_input.api_key}")
+        # print(f"Received password: {prompt_input.password}")
         logger.info(f"Received request: user_input={prompt_input.user_input}..., styles={prompt_input.style}, framework={prompt_input.framework}")
         decrypted_api_key = None
         if prompt_input.api_key:
@@ -80,7 +82,7 @@ async def refine_prompt(prompt_input: PromptSchema):
                 # Decrypt the API key using the password provided from the cookie.
                 # This logic is compatible with CryptoJS.AES.encrypt used on the frontend.
                 decrypted_api_key = decrypt_cryptojs_aes(prompt_input.api_key, prompt_input.password)
-                print(f"Decrypted API Key: {decrypted_api_key}")
+                # print(f"Decrypted API Key: {decrypted_api_key}")
                 logger.info("Successfully decrypted and using user-provided API key.")
             except (ValueError, IndexError, TypeError) as e:
                 logger.error(f"Failed to decrypt API key: {e}")
@@ -101,3 +103,39 @@ async def refine_prompt(prompt_input: PromptSchema):
     except Exception as e:
         logger.error(f"Error refining prompt: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error refining prompt: {str(e)}")
+
+@app.post("/update_prompt")
+async def update_prompt_endpoint(update_input: UpdatePromptSchema):
+    """
+    Receives a prompt, user feedback, and refines the prompt based on it.
+    """
+    logger.info(f"Received request for /update_prompt for prompt: {update_input.original_prompt[:50]}...")
+    try:
+        decrypted_api_key = None
+        if update_input.api_key:
+            if not update_input.password:
+                raise HTTPException(status_code=400, detail="API key is present, but no password was provided for update. Your session may have expired.")
+            try:
+                decrypted_api_key = decrypt_cryptojs_aes(update_input.api_key, update_input.password)
+                logger.info("Successfully decrypted and using user-provided API key for update.")
+            except (ValueError, IndexError, TypeError) as e:
+                logger.error(f"Failed to decrypt API key for update: {e}")
+                raise HTTPException(status_code=400, detail="Invalid API key or password for update.")
+
+        final_api_key = decrypted_api_key or GOOGLE_API_KEY
+        if not final_api_key:
+            logger.error("API key not found in request or environment for update.")
+            raise HTTPException(status_code=401, detail="API key not found. Please provide it in the settings or set GOOGLE_API_KEY in your environment.")
+
+        pipeline = UpdatePipeline(api_key=final_api_key)
+        updated_prompt = await pipeline.run(
+            original_prompt=update_input.original_prompt,
+            final_prompt=update_input.final_prompt,
+            user_feedback=update_input.user_feedback,
+            style=update_input.style,
+            framework=update_input.framework,
+        )
+        return {"updated_prompt": updated_prompt}
+    except Exception as e:
+        logger.error(f"An unexpected error occurred in /update_prompt: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")

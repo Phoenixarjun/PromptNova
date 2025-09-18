@@ -1,6 +1,9 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Info } from 'lucide-react';
+import { Info, RefreshCw, Eye, EyeOff, Loader2, AlertTriangle, Copy, Check } from 'lucide-react';
+import CryptoJS from 'crypto-js';
+import { RefineForm } from './RefineForm';
+import { AdvancedOptions } from './AdvancedOptions';
 
 interface Example {
   id: number;
@@ -8,10 +11,12 @@ interface Example {
   output: string;
 }
 interface FormProps {
+  result: string;
   setResult: (result: string) => void;
   setIsLoading: (loading: boolean) => void;
   setError: (error: string) => void;
   isLoading: boolean;
+  error: string;
 }
 
 const getCookie = (name: string): string | null => {
@@ -79,7 +84,7 @@ const combos = [
 ];
 
 
-export const Form: React.FC<FormProps> = ({ setResult, setIsLoading, setError, isLoading }) => {
+export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, setError, isLoading, error }) => {
   const types = [
     { name: 'Zero Shot', slug: 'zero_shot' },
     { name: 'One Shot', slug: 'one_shot' },
@@ -152,6 +157,16 @@ export const Form: React.FC<FormProps> = ({ setResult, setIsLoading, setError, i
   const [showInfo, setShowInfo] = useState(false);
   const [showAllTypes, setShowAllTypes] = useState(false);
   const [showAllFrameworks, setShowAllFrameworks] = useState(false);
+  const [showRefineModal, setShowRefineModal] = useState(false);
+  const [isReauthenticating, setIsReauthenticating] = useState(false);
+  const [reauthPassword, setReauthPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [parsedPrompt, setParsedPrompt] = useState('');
+  const [parsedExplanation, setParsedExplanation] = useState('');
+  const [mode, setMode] = useState<'normal' | 'expert'>('normal');
+  const [advancedParams, setAdvancedParams] = useState<any>({ types: {}, framework: {} });
+  const [isPromptCopied, setIsPromptCopied] = useState(false);
+  const [isExplanationCopied, setIsExplanationCopied] = useState(false);
 
   const visibleTypes = showAllTypes ? types : types.slice(0, 6);
   const visibleFrameworks = showAllFrameworks ? frameworks : frameworks.slice(0, 6);
@@ -175,6 +190,44 @@ export const Form: React.FC<FormProps> = ({ setResult, setIsLoading, setError, i
       setCurrentComboIndex(newIndex);
     }
   }, [selectedTypes, selectedFramework, currentComboIndex]);
+
+  useEffect(() => {
+    if (result) {
+      const explanationSeparator = "**Explanation of Improvements and Rationale:**";
+      const promptSeparator = "**Refined Prompt:**";
+      
+      let promptPart = result;
+      let explanationPart = '';
+
+      if (result.includes(explanationSeparator)) {
+        const parts = result.split(explanationSeparator);
+        promptPart = parts[0];
+        explanationPart = parts[1] || '';
+      }
+
+      if (promptPart.includes(promptSeparator)) {
+        promptPart = promptPart.split(promptSeparator)[1];
+      }
+      
+      const startIndex = promptPart.indexOf('```');
+      const endIndex = promptPart.lastIndexOf('```');
+      let cleanedPrompt;
+
+      if (startIndex !== -1 && endIndex > startIndex) {
+        // Extract content within the fences, remove optional language identifier, and trim.
+        cleanedPrompt = promptPart.substring(startIndex + 3, endIndex).replace(/^[a-zA-Z]*\n?/, '').trim();
+      } else {
+        // Fallback if no valid code block is found.
+        cleanedPrompt = promptPart.trim();
+      }
+      
+      setParsedPrompt(cleanedPrompt);
+      setParsedExplanation(explanationPart.trim());
+    } else {
+      setParsedPrompt('');
+      setParsedExplanation('');
+    }
+  }, [result]);
 
   const handleTypeToggle = (slug: string) => {
     setSelectedTypes(prev =>
@@ -215,17 +268,29 @@ export const Form: React.FC<FormProps> = ({ setResult, setIsLoading, setError, i
     setExamples(prev => prev.filter(ex => ex.id !== id));
   };
 
+  const handleCopy = (text: string, type: 'prompt' | 'explanation') => {
+    navigator.clipboard.writeText(text);
+    if (type === 'prompt') {
+      setIsPromptCopied(true);
+      setTimeout(() => setIsPromptCopied(false), 2000);
+    } else {
+      setIsExplanationCopied(true);
+      setTimeout(() => setIsExplanationCopied(false), 2000);
+    }
+  };
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setResult('');
     setError('');
 
     const encryptedApiKey = localStorage.getItem('gemini_api_key_encrypted');
     const password = getCookie('api_key_password');
 
     if (encryptedApiKey && !password) {
-      setError('API key is saved, but your session password has expired. Please go to Settings, click "Edit", and re-enter your password to continue.');
+      setIsReauthenticating(true);
+      setResult('');
       setIsLoading(false);
       return;
     }
@@ -233,9 +298,40 @@ export const Form: React.FC<FormProps> = ({ setResult, setIsLoading, setError, i
     console.log(encryptedApiKey);
     console.log(password);
 
+    let finalPromptText = promptText;
+
+    if (mode === 'expert') {
+      const cleanParams: any = { types: {}, framework: {} };
+
+      Object.entries(advancedParams.types).forEach(([type, params]: [string, any]) => {
+        const cleanTypeParams = Object.fromEntries(Object.entries(params).filter(([_, v]) => v));
+        if (Object.keys(cleanTypeParams).length > 0) {
+          cleanParams.types[type] = cleanTypeParams;
+        }
+      });
+
+      if (advancedParams.framework) {
+        const frameworkSlug = Object.keys(advancedParams.framework)[0];
+        if (frameworkSlug) {
+          const frameworkParams = advancedParams.framework[frameworkSlug];
+          const cleanFrameworkParams = Object.fromEntries(Object.entries(frameworkParams).filter(([_, v]) => v));
+          if (Object.keys(cleanFrameworkParams).length > 0) {
+            cleanParams.framework[frameworkSlug] = cleanFrameworkParams;
+          }
+        }
+      }
+      
+      const hasExpertData = Object.keys(cleanParams.types).length > 0 || Object.keys(cleanParams.framework).length > 0;
+
+      if (hasExpertData) {
+        const expertDetailsString = `Expert Details:\n${JSON.stringify(cleanParams, null, 2)}`;
+        finalPromptText = `${expertDetailsString}\n\n---\n\n${promptText}`;
+      }
+    }
+
     const payload = {
-      user_input: promptText,
-      examples,
+      user_input: finalPromptText,
+      examples: examples.map(({ id, ...rest }) => rest).filter(ex => ex.input && ex.output),
       style: selectedTypes,
       framework: selectedFramework,
       api_key: encryptedApiKey,
@@ -277,14 +373,108 @@ export const Form: React.FC<FormProps> = ({ setResult, setIsLoading, setError, i
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'An unknown error occurred.');
+      setResult('');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleReauthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reauthPassword) {
+        setError('Password cannot be empty.');
+        return;
+    }
+    setIsLoading(true);
+    setError('');
+
+    const encryptedKey = localStorage.getItem('gemini_api_key_encrypted');
+    if (!encryptedKey) {
+        setError("Encrypted key not found. Please save it again in Settings.");
+        setIsLoading(false);
+        return;
+    }
+
+    try {
+        const decryptedBytes = CryptoJS.AES.decrypt(encryptedKey, reauthPassword);
+        const decryptedKey = decryptedBytes.toString(CryptoJS.enc.Utf8);
+
+        if (!decryptedKey) {
+            throw new Error('Incorrect password.');
+        }
+
+        // Password is correct, refresh the cookie for 7 days
+        document.cookie = `api_key_password=${reauthPassword};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
+        
+        setIsReauthenticating(false);
+        setReauthPassword('');
+        await handleSubmit(e);
+
+    } catch (err) {
+        setError("Decryption failed. Incorrect password.");
+        setIsLoading(false);
+    }
+  };
+
   return (
     <div className="p-8 bg-gray-50 rounded-lg shadow-md max-w-3xl mx-auto my-8 border border-gray-200">
+      {isReauthenticating && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={() => setIsReauthenticating(false)}>
+            <div className="bg-white rounded-lg shadow-2xl p-6 max-w-xl w-full" onClick={e => e.stopPropagation()}>
+                <h2 className="text-2xl font-bold mb-2 text-gray-800">Session Expired</h2>
+                <p className="text-gray-600 mb-4 text-sm">Please re-enter your password to continue.</p>
+                <form onSubmit={handleReauthSubmit}>
+                    <div className="mb-4">
+                        <label htmlFor="reauth-password-form" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <div className="relative">
+                            <input id="reauth-password-form" type={showPassword ? 'text' : 'password'} value={reauthPassword} onChange={(e) => setReauthPassword(e.target.value)} className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Enter password" autoFocus />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700">
+                                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-4">
+                        <button type="button" onClick={() => setIsReauthenticating(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">Cancel</button>
+                        <button type="submit" disabled={isLoading} className="px-4 py-2 bg-gray-800 text-white rounded-md flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+                            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                            {isLoading ? 'Verifying...' : 'Confirm & Generate'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+      )}
+      {showRefineModal && <RefineForm 
+        originalPrompt={promptText} 
+        finalPrompt={parsedPrompt} 
+        onClose={() => setShowRefineModal(false)} 
+        onRefined={(newPrompt) => { setResult(newPrompt); }}
+        style={selectedTypes}
+        framework={selectedFramework}
+      />}
       <form onSubmit={handleSubmit}>
+        <div className="flex justify-center mb-6">
+          <div className="bg-gray-200 p-1 rounded-lg flex">
+            <button
+              type="button"
+              onClick={() => setMode('normal')}
+              className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${
+                mode === 'normal' ? 'bg-white text-gray-800 shadow' : 'text-gray-600'
+              }`}
+            >
+              Normal
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('expert')}
+              className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${
+                mode === 'expert' ? 'bg-white text-gray-800 shadow' : 'text-gray-600'
+              }`}
+            >
+              Expert
+            </button>
+          </div>
+        </div>
         <div className="mb-6">
           <label htmlFor="prompt-input" className="block text-gray-700 text-sm font-semibold mb-2">
             Enter Your Prompt
@@ -297,6 +487,15 @@ export const Form: React.FC<FormProps> = ({ setResult, setIsLoading, setError, i
             placeholder="e.g., Generate a Python function to calculate Fibonacci sequence."
           />
         </div>
+
+        {mode === 'expert' && (
+          <AdvancedOptions
+            selectedTypes={selectedTypes}
+            selectedFramework={selectedFramework}
+            advancedParams={advancedParams}
+            setAdvancedParams={setAdvancedParams}
+          />
+        )}
 
         <div className="mb-6">
           <label className="block text-gray-700 text-sm font-semibold mb-3">
@@ -495,6 +694,85 @@ export const Form: React.FC<FormProps> = ({ setResult, setIsLoading, setError, i
           {isLoading ? 'Generating...' : 'Generate Prompt'}
         </button>
       </form>
+
+      {isLoading && (
+        <div className="mt-8 pt-6 border-t border-gray-200 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+          <p className="ml-4 text-gray-600">Generating refined prompt...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-8 p-8 bg-red-50 rounded-lg shadow-md max-w-3xl mx-auto border border-red-200 flex items-center">
+          <AlertTriangle className="h-8 w-8 text-red-500" />
+          <div className="ml-4">
+            <p className="font-semibold text-red-700">An error occurred:</p>
+            <p className="text-red-600">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {result && !isLoading && !error && (
+        <div className="mt-8 pt-6 border-t border-gray-200 space-y-6">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-800">Generated Prompt</h2>
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => handleCopy(parsedPrompt, 'prompt')}
+                        className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 transition-colors text-sm"
+                        aria-label="Copy prompt"
+                    >
+                        {isPromptCopied ? (
+                            <>
+                                <Check className="h-4 w-4 text-green-500" />
+                                <span className="text-green-500">Copied!</span>
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="h-4 w-4" />
+                                <span>Copy</span>
+                            </>
+                        )}
+                    </button>
+                    <button onClick={() => setShowRefineModal(true)} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors text-sm font-medium">
+                        <RefreshCw className="h-4 w-4" />
+                        Refine
+                    </button>
+                </div>
+            </div>
+            <div className="bg-white p-6 border border-gray-200 rounded-md">
+              <pre className="whitespace-pre-wrap font-sans text-sm">{parsedPrompt}</pre>
+            </div>
+            
+            {parsedExplanation && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-lg font-bold text-gray-800">Explanation</h3>
+                    <button 
+                        onClick={() => handleCopy(parsedExplanation, 'explanation')}
+                        className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 transition-colors text-sm"
+                        aria-label="Copy explanation"
+                    >
+                        {isExplanationCopied ? (
+                            <>
+                                <Check className="h-4 w-4 text-green-500" />
+                                <span className="text-green-500">Copied!</span>
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="h-4 w-4" />
+                                <span>Copy</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+                <div className="bg-white p-6 border border-gray-200 rounded-md">
+                  <pre className="whitespace-pre-wrap font-sans text-sm">{parsedExplanation}</pre>
+                </div>
+              </div>
+            )}
+        </div>
+      )}
     </div>
   )
 }

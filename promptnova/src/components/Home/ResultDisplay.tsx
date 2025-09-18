@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Loader2, AlertTriangle, Clipboard, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Loader2, AlertTriangle } from 'lucide-react';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface ResultDisplayProps {
   result: string;
@@ -10,14 +11,36 @@ interface ResultDisplayProps {
 }
 
 export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error }) => {
-  const [copied, setCopied] = useState(false);
+  const [parsedPrompt, setParsedPrompt] = useState('');
+  const [parsedExplanation, setParsedExplanation] = useState('');
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(result).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
+  useEffect(() => {
+    if (result) {
+      const explanationSeparator = "**Explanation of Improvements and Rationale:**";
+      const promptSeparator = "**Refined Prompt:**";
+      
+      let promptPart = result;
+      let explanationPart = '';
+
+      if (result.includes(explanationSeparator)) {
+        const parts = result.split(explanationSeparator);
+        promptPart = parts[0];
+        explanationPart = parts[1] || '';
+      }
+
+      if (promptPart.includes(promptSeparator)) {
+        promptPart = promptPart.split(promptSeparator)[1];
+      }
+      
+      const cleanedPrompt = promptPart.replace(/^```[\w\s]*\n?|```$/g, "").trim();
+      
+      setParsedPrompt(cleanedPrompt);
+      setParsedExplanation(explanationPart.trim());
+    } else {
+      setParsedPrompt('');
+      setParsedExplanation('');
+    }
+  }, [result]);
 
   if (isLoading) {
     return (
@@ -45,18 +68,22 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading,
   }
 
   return (
-    <div className="mt-8 p-8 bg-white rounded-lg shadow-lg max-w-3xl mx-auto border border-gray-200 relative group">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Refined Prompt</h2>
-      <pre className="bg-gray-100 p-4 rounded-md text-gray-800 whitespace-pre-wrap font-mono text-sm">
-        <code>{result}</code>
-      </pre>
-      <button
-        onClick={handleCopy}
-        className="absolute top-8 right-8 p-2 bg-gray-200 text-gray-600 rounded-md transition-colors duration-200 hover:bg-gray-300"
-        aria-label="Copy prompt"
-      >
-        {copied ? <Check className="h-5 w-5 text-green-600" /> : <Clipboard className="h-5 w-5" />}
-      </button>
+    <div className="max-w-3xl mx-auto my-8">
+      {result && !isLoading && !error && (
+        <div className="mt-8 pt-6 border-t border-gray-200 space-y-6">
+          <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Generated Prompt</h2>
+          </div>
+          <div className="bg-white p-6 border border-gray-200 rounded-md"><MarkdownRenderer content={parsedPrompt} /></div>
+          {parsedExplanation && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-gray-800">Explanation</h3>
+              <div className="bg-white p-6 border border-gray-200 rounded-md">
+                <MarkdownRenderer content={parsedExplanation} />
+              </div>
+            </div>
+          )}
+        </div>)}
     </div>
   );
 };
