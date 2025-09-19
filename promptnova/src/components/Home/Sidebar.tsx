@@ -2,7 +2,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import CryptoJS from 'crypto-js';
-import { Settings, Eye, EyeOff } from 'lucide-react';
+import { Settings, Eye, EyeOff, Info } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const API_KEY_STORAGE_ITEM = 'gemini_api_key_encrypted';
 
@@ -164,22 +172,22 @@ export const Sidebar = () => {
     };
 
     const PasswordPrompt = () => (
-        <div className="mt-4 p-4 bg-gray-200 rounded-md border border-gray-300">
-            <h3 className="text-sm font-semibold mb-2 text-gray-800">{promptConfig.title}</h3>
+        <div className="mt-4 p-4 bg-gray-200 dark:bg-gray-800 rounded-md border border-gray-300 dark:border-gray-700">
+            <h3 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">{promptConfig.title}</h3>
             <div className="relative">
                 <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                    className="w-full p-2 pr-10 border border-gray-300 rounded-md text-sm"
+                    className="w-full p-2 pr-10 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md text-sm"
                     placeholder="Enter password"
                     autoFocus
                 />
                 <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -187,10 +195,10 @@ export const Sidebar = () => {
             </div>
             {promptError && <p className="text-red-600 text-xs mt-1">{promptError}</p>}
             <div className="flex space-x-2 mt-2">
-                <button onClick={handlePasswordSubmit} className="flex-1 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-sm font-medium">
+                <button onClick={handlePasswordSubmit} className="flex-1 bg-gray-800 dark:bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 dark:hover:bg-blue-700 text-sm font-medium">
                     Confirm
                 </button>
-                <button onClick={resetPrompt} className="flex-1 bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-100 text-sm font-medium">
+                <button onClick={resetPrompt} className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 text-sm font-medium">
                     Cancel
                 </button>
             </div>
@@ -206,17 +214,17 @@ export const Sidebar = () => {
             if (isKeySaved) { // Editing an existing key
                 return (
                     <div className="flex space-x-2">
-                        <button onClick={handleSaveClick} className="flex-1 bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-sm font-semibold transition-colors">
+                        <button onClick={handleSaveClick} className="flex-1 bg-gray-800 dark:bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 dark:hover:bg-blue-700 text-sm font-semibold transition-colors">
                             Save
                         </button>
-                        <button onClick={handleCancelEdit} className="flex-1 bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-100 text-sm font-medium">
+                        <button onClick={handleCancelEdit} className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 text-sm font-medium">
                             Cancel
                         </button>
                     </div>
                 );
             } else { // Entering a new key
                 return (
-                    <button onClick={handleSaveClick} className="w-full bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-sm font-semibold transition-colors disabled:bg-gray-400" disabled={!apiKeyInput}>
+                    <button onClick={handleSaveClick} className="w-full bg-gray-800 dark:bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 dark:hover:bg-blue-700 text-sm font-semibold transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-500" disabled={!apiKeyInput}>
                         Save Key
                     </button>
                 );
@@ -226,7 +234,7 @@ export const Sidebar = () => {
         if (isKeySaved) { // Key is saved and locked
             return (
                 <div className="flex space-x-2">
-                    <button onClick={handleEditClick} className="flex-1 bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-100 text-sm font-medium transition-colors">
+                    <button onClick={handleEditClick} className="flex-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 text-sm font-medium transition-colors">
                         Edit
                     </button>
                     <button onClick={handleDeleteClick} className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm font-medium transition-colors">
@@ -240,22 +248,58 @@ export const Sidebar = () => {
     };
 
     return (
-        <aside className="w-full md:w-64 lg:w-72 flex-shrink-0 bg-gray-100 border-r border-gray-200 p-6">
+        <aside className="w-full md:w-64 lg:w-72 flex-shrink-0 bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 p-6">
             <div className="space-y-4 sticky top-24">
                 <div className="flex items-center gap-2">
                     <Settings className="h-5 w-5 text-gray-600" />
-                    <h2 className="text-lg font-semibold text-gray-800">Settings</h2>
+                    <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Settings</h2>
                 </div>
                 
                 <div>
-                    <label htmlFor="api-key-input" className="block text-sm font-medium text-gray-700 mb-2">
-                        Gemini API Key
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                        <Label htmlFor="api-key-input" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Gemini API Key
+                        </Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6">
+                                    <Info className="h-4 w-4" />
+                                    <span className="sr-only">API Key Instructions</span>
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" side="top">
+                                <div className="flex flex-col space-y-2 text-sm">
+                                    <h4 className="font-semibold">How to get your Gemini API Key</h4>
+                                    <ol className="list-decimal list-inside space-y-1">
+                                        <li>
+                                            Go to{" "}
+                                            <a
+                                                href="https://aistudio.google.com/app/apikey"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-500 hover:underline"
+                                            >
+                                                Google AI Studio
+                                            </a>
+                                            .
+                                        </li>
+                                        <li>
+                                            Click on <strong>"Get API key"</strong>.
+                                        </li>
+                                        <li>
+                                            Click on <strong>"Create API key in new project"</strong>.
+                                        </li>
+                                        <li>Copy the generated API key and paste it here.</li>
+                                    </ol>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
                     <div className="relative">
-                        <input
+                        <Input
                             id="api-key-input"
                             type={isEditing ? 'text' : 'password'}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white text-gray-800 text-sm"
+                            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm"
                             value={apiKeyInput}
                             onChange={(e) => setApiKeyInput(e.target.value)}
                             placeholder="Enter your API key"
@@ -266,7 +310,7 @@ export const Sidebar = () => {
 
                 {renderButtons()}
 
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                     Your API key is stored securely in your browser's local storage and is never sent to our servers.
                 </p>
             </div>

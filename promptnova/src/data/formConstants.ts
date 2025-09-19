@@ -32,9 +32,9 @@ export const types = [
     { name: 'Deliberation Prompting', slug: 'deliberation_prompting' },
     { name: 'Context Expansion', slug: 'context_expansion' },
     { name: 'Goal-Oriented Prompting', slug: 'goal_oriented_prompting' },
-];
-
-export const frameworks = [
+  ];
+  
+  export const frameworks = [
     { name: 'Co-Star', slug: 'co_star' },
     { name: 'TCEF', slug: 'tcef' },
     { name: 'CRISPE', slug: 'crispe' },
@@ -60,9 +60,9 @@ export const frameworks = [
     { name: 'Dynamic Context Windows', slug: 'dynamic_context_windows' },
     { name: 'Meta-Cognitive Prompting', slug: 'meta_cognitive_prompting' },
     { name: 'Prompt Ensembles', slug: 'prompt_ensembles' },
-];
+  ];
 
-export const combos = [
+  export const combos = [
     {
       name: "Custom",
       description: "Select your own combination of types and framework.",
@@ -117,4 +117,5 @@ export const combos = [
       types: ['plan_and_solve', 'context_expansion', 'multi_agent_debate', 'goal_oriented_prompting'],
       framework: 'dynamic_context_windows',
     },
-];
+  ];
+  

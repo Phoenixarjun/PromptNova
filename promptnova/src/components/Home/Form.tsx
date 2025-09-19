@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Info, RefreshCw, Eye, EyeOff, Loader2, AlertTriangle, Copy, Check } from 'lucide-react';
+import { Info, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import CryptoJS from 'crypto-js';
 import { RefineForm } from './RefineForm';
 import { AdvancedOptions } from './AdvancedOptions';
@@ -16,7 +16,6 @@ interface FormProps {
   setIsLoading: (loading: boolean) => void;
   setError: (error: string) => void;
   isLoading: boolean;
-  error: string;
 }
 
 const getCookie = (name: string): string | null => {
@@ -84,7 +83,7 @@ const combos = [
 ];
 
 
-export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, setError, isLoading, error }) => {
+export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, setError, isLoading }) => {
   const types = [
     { name: 'Zero Shot', slug: 'zero_shot' },
     { name: 'One Shot', slug: 'one_shot' },
@@ -162,14 +161,19 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const [reauthPassword, setReauthPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [parsedPrompt, setParsedPrompt] = useState('');
-  const [parsedExplanation, setParsedExplanation] = useState('');
   const [mode, setMode] = useState<'normal' | 'expert'>('normal');
   const [advancedParams, setAdvancedParams] = useState<any>({ types: {}, framework: {} });
-  const [isPromptCopied, setIsPromptCopied] = useState(false);
-  const [isExplanationCopied, setIsExplanationCopied] = useState(false);
 
   const visibleTypes = showAllTypes ? types : types.slice(0, 6);
   const visibleFrameworks = showAllFrameworks ? frameworks : frameworks.slice(0, 6);
+
+  useEffect(() => {
+    const handleShowRefineModal = () => setShowRefineModal(true);
+    window.addEventListener('show-refine-modal', handleShowRefineModal);
+    return () => {
+      window.removeEventListener('show-refine-modal', handleShowRefineModal);
+    };
+  }, []);
 
   useEffect(() => {
     const matchingComboIndex = combos.findIndex((combo, index) => {
@@ -197,12 +201,10 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
       const promptSeparator = "**Refined Prompt:**";
       
       let promptPart = result;
-      let explanationPart = '';
 
       if (result.includes(explanationSeparator)) {
         const parts = result.split(explanationSeparator);
         promptPart = parts[0];
-        explanationPart = parts[1] || '';
       }
 
       if (promptPart.includes(promptSeparator)) {
@@ -212,20 +214,15 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
       const startIndex = promptPart.indexOf('```');
       const endIndex = promptPart.lastIndexOf('```');
       let cleanedPrompt;
-
       if (startIndex !== -1 && endIndex > startIndex) {
-        // Extract content within the fences, remove optional language identifier, and trim.
         cleanedPrompt = promptPart.substring(startIndex + 3, endIndex).replace(/^[a-zA-Z]*\n?/, '').trim();
       } else {
-        // Fallback if no valid code block is found.
         cleanedPrompt = promptPart.trim();
       }
       
       setParsedPrompt(cleanedPrompt);
-      setParsedExplanation(explanationPart.trim());
     } else {
       setParsedPrompt('');
-      setParsedExplanation('');
     }
   }, [result]);
 
@@ -266,17 +263,6 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
   const removeExample = (id: number) => {
     setExamples(prev => prev.filter(ex => ex.id !== id));
-  };
-
-  const handleCopy = (text: string, type: 'prompt' | 'explanation') => {
-    navigator.clipboard.writeText(text);
-    if (type === 'prompt') {
-      setIsPromptCopied(true);
-      setTimeout(() => setIsPromptCopied(false), 2000);
-    } else {
-      setIsExplanationCopied(true);
-      setTimeout(() => setIsExplanationCopied(false), 2000);
-    }
   };
 
 
@@ -417,25 +403,25 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   };
 
   return (
-    <div className="p-8 bg-gray-50 rounded-lg shadow-md max-w-3xl mx-auto my-8 border border-gray-200">
+    <div className="p-8 bg-gray-50 dark:bg-gray-900/50 rounded-lg shadow-md max-w-3xl mx-auto my-8 border border-gray-200 dark:border-gray-800">
       {isReauthenticating && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={() => setIsReauthenticating(false)}>
-            <div className="bg-white rounded-lg shadow-2xl p-6 max-w-xl w-full" onClick={e => e.stopPropagation()}>
-                <h2 className="text-2xl font-bold mb-2 text-gray-800">Session Expired</h2>
-                <p className="text-gray-600 mb-4 text-sm">Please re-enter your password to continue.</p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 max-w-xl w-full" onClick={e => e.stopPropagation()}>
+                <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100">Session Expired</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">Please re-enter your password to continue.</p>
                 <form onSubmit={handleReauthSubmit}>
                     <div className="mb-4">
-                        <label htmlFor="reauth-password-form" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <label htmlFor="reauth-password-form" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
                         <div className="relative">
-                            <input id="reauth-password-form" type={showPassword ? 'text' : 'password'} value={reauthPassword} onChange={(e) => setReauthPassword(e.target.value)} className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Enter password" autoFocus />
-                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700">
+                            <input id="reauth-password-form" type={showPassword ? 'text' : 'password'} value={reauthPassword} onChange={(e) => setReauthPassword(e.target.value)} className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Enter password" autoFocus />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                             </button>
                         </div>
                     </div>
                     <div className="flex justify-end gap-4">
-                        <button type="button" onClick={() => setIsReauthenticating(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">Cancel</button>
-                        <button type="submit" disabled={isLoading} className="px-4 py-2 bg-gray-800 text-white rounded-md flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+                        <button type="button" onClick={() => setIsReauthenticating(false)} className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Cancel</button>
+                        <button type="submit" disabled={isLoading} className="px-4 py-2 bg-gray-800 dark:bg-blue-600 text-white rounded-md flex items-center gap-2 disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
                             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                             {isLoading ? 'Verifying...' : 'Confirm & Generate'}
                         </button>
@@ -454,12 +440,12 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
       />}
       <form onSubmit={handleSubmit}>
         <div className="flex justify-center mb-6">
-          <div className="bg-gray-200 p-1 rounded-lg flex">
+          <div className="bg-gray-200 dark:bg-gray-800 p-1 rounded-lg flex">
             <button
               type="button"
               onClick={() => setMode('normal')}
               className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${
-                mode === 'normal' ? 'bg-white text-gray-800 shadow' : 'text-gray-600'
+                mode === 'normal' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow' : 'text-gray-600 dark:text-gray-400'
               }`}
             >
               Normal
@@ -468,7 +454,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
               type="button"
               onClick={() => setMode('expert')}
               className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${
-                mode === 'expert' ? 'bg-white text-gray-800 shadow' : 'text-gray-600'
+                mode === 'expert' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow' : 'text-gray-600 dark:text-gray-400'
               }`}
             >
               Expert
@@ -476,12 +462,12 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
           </div>
         </div>
         <div className="mb-6">
-          <label htmlFor="prompt-input" className="block text-gray-700 text-sm font-semibold mb-2">
+          <label htmlFor="prompt-input" className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
             Enter Your Prompt
           </label>
           <textarea
             id="prompt-input"
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white text-gray-800 resize-y min-h-[120px]"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 resize-y min-h-[120px]"
             value={promptText}
             onChange={(e) => setPromptText(e.target.value)}
             placeholder="e.g., Generate a Python function to calculate Fibonacci sequence."
@@ -498,15 +484,15 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         )}
 
         <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-semibold mb-3">
+          <label className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">
             Examples (Optional)
           </label>
           <div className="space-y-4">
             {examples.map((example, index) => (
-              <div key={example.id} className="relative rounded-md border border-gray-200 bg-white p-4">
+              <div key={example.id} className="relative rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label htmlFor={`example-input-${index}`} className="block text-xs font-medium text-gray-600 mb-1">
+                    <label htmlFor={`example-input-${index}`} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                       Input
                     </label>
                     <textarea
@@ -514,11 +500,11 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
                       value={example.input}
                       onChange={(e) => handleExampleChange(example.id, 'input', e.target.value)}
                       placeholder="Example input"
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white text-gray-800 resize-y min-h-[80px] text-sm"
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 resize-y min-h-[80px] text-sm"
                     />
                   </div>
                   <div>
-                    <label htmlFor={`example-output-${index}`} className="block text-xs font-medium text-gray-600 mb-1">
+                    <label htmlFor={`example-output-${index}`} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                       Output/Example
                     </label>
                     <textarea
@@ -526,14 +512,14 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
                       value={example.output}
                       onChange={(e) => handleExampleChange(example.id, 'output', e.target.value)}
                       placeholder="Expected output"
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white text-gray-800 resize-y min-h-[80px] text-sm"
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 resize-y min-h-[80px] text-sm"
                     />
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => removeExample(example.id)}
-                  className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-500 text-white hover:bg-red-600 transition-colors"
+                  className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-500 dark:bg-gray-600 text-white hover:bg-red-600 dark:hover:bg-red-500 transition-colors"
                   aria-label="Remove example"
                 >
                   <span className="text-sm leading-none pb-0.5">&times;</span>
@@ -541,21 +527,21 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
               </div>
             ))}
           </div>
-          <button type="button" onClick={addExample} className="mt-4 w-full rounded-md border-2 border-dashed border-gray-300 bg-gray-50 py-2 px-4 text-center text-sm font-medium text-gray-600 hover:border-gray-400 hover:bg-gray-100 transition-colors">
+          <button type="button" onClick={addExample} className="mt-4 w-full rounded-md border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 py-2 px-4 text-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
             + Add Example
           </button>
         </div>
 
         <div className="mb-6">
-          <h2 className="text-gray-700 text-sm font-semibold mb-3">
+          <h2 className="text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">
             Prompt Strategy (Optional)
           </h2>
-          <p className="text-sm text-gray-500 mb-3">Select a pre-built strategy or create your own custom combination below.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Select a pre-built strategy or create your own custom combination below.</p>
           <div className="relative flex items-center gap-2">
             <button
               type="button"
               onClick={handleNextCombo}
-              className="flex-grow bg-white border border-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-100 transition-colors text-left"
+              className="flex-grow bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
             >
               <span className="font-medium">{combos[currentComboIndex].name}</span>
             </button>
@@ -563,7 +549,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setShowInfo(true); }}
-                className="p-2 text-gray-500 hover:text-gray-800 rounded-full hover:bg-gray-200"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
                 aria-label="Show strategy info"
               >
                 <Info className="h-5 w-5" />
@@ -574,26 +560,26 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
         {showInfo && currentComboIndex > 0 && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowInfo(false)}>
-            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">{combos[currentComboIndex].name}</h3>
-              <p className="text-gray-600 text-sm">{combos[currentComboIndex].description}</p>
-              <button onClick={() => setShowInfo(false)} className="mt-4 w-full bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700">Close</button>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">{combos[currentComboIndex].name}</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">{combos[currentComboIndex].description}</p>
+              <button onClick={() => setShowInfo(false)} className="mt-4 w-full bg-gray-800 dark:bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 dark:hover:bg-blue-700">Close</button>
             </div>
           </div>
         )}
 
         <div className="mb-6">
-          <h2 className="text-gray-700 text-sm font-semibold mb-3">Select Prompt Types (Multiple)</h2>
+          <h2 className="text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">Select Prompt Types (Multiple)</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {visibleTypes.map(type => (
               <button
                 key={type.slug}
                 type="button"
                 onClick={() => handleTypeToggle(type.slug)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200
-                  ${selectedTypes.includes(type.slug)
-                    ? 'bg-gray-800 text-white border border-gray-800'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                className={`px-4 py-2 rounded-md text-sm font-medium  transition-colors duration-200
+                  ${selectedTypes.includes(type.slug) ?
+                    'bg-gray-800 text-white dark:bg-gray-300 dark:text-gray-800 border border-gray-800 dark:border-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
               >
                 {type.name}
@@ -605,7 +591,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
               <button
                 type="button"
                 onClick={() => setShowAllTypes(prev => !prev)}
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:underline"
               >
                 {showAllTypes ? 'Show Less' : `Show ${types.length - 6} More...`}
               </button>
@@ -614,7 +600,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         </div>
 
         <div className="mb-6">
-          <h2 className="text-gray-700 text-sm font-semibold mb-3">Select Framework (Single)</h2>
+          <h2 className="text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">Select Framework (Single)</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {visibleFrameworks.map(framework => (
               <button
@@ -622,9 +608,9 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
                 type="button"
                 onClick={() => handleFrameworkSelect(framework.slug)}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200
-                  ${selectedFramework === framework.slug
-                    ? 'bg-gray-800 text-white border border-gray-800'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                  ${selectedFramework === framework.slug ?
+                    'bg-gray-800 text-white dark:bg-gray-300 dark:text-gray-800 border border-gray-800 dark:border-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
               >
                 {framework.name}
@@ -635,8 +621,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
             <div className="mt-4 flex justify-center">
               <button
                 type="button"
-                onClick={() => setShowAllFrameworks(prev => !prev)}
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                onClick={() => setShowAllFrameworks(prev => !prev)} className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:underline"
               >
                 {showAllFrameworks ? 'Show Less' : `Show ${frameworks.length - 6} More...`}
               </button>
@@ -645,134 +630,56 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         </div>
 
         <div className="mb-6">
-          <h2 className="text-gray-700 text-sm font-semibold mb-3">Selected Types</h2>
+          <h2 className="text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">Selected Types</h2>
           <div className="flex flex-wrap gap-2">
             {selectedTypes.length > 0 ? (
               selectedTypes.map(slug => (
-                <span key={slug} className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
+                <span key={slug} className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
                   {types.find(t => t.slug === slug)?.name || slug}
                   <button
                     type="button"
                     onClick={() => handleRemoveSelected(slug, 'type')}
-                    className="text-gray-600 hover:text-gray-900 ml-1"
+                    className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white ml-1"
                   >
                     &times;
                   </button>
                 </span>
               ))
             ) : (
-              <p className="text-gray-500 text-sm">No types selected.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">No types selected.</p>
             )}
           </div>
         </div>
 
         <div className="mb-6">
-          <h2 className="text-gray-700 text-sm font-semibold mb-3">Selected Framework</h2>
+          <h2 className="text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">Selected Framework</h2>
           <div className="flex flex-wrap gap-2">
             {selectedFramework ? (
-              <span className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
+              <span className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
                 {frameworks.find(f => f.slug === selectedFramework)?.name || selectedFramework}
                 <button
                   type="button"
                   onClick={() => handleRemoveSelected(selectedFramework, 'framework')}
-                  className="text-gray-600 hover:text-gray-900 ml-1"
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white ml-1"
                 >
                   &times;
                 </button>
               </span>
             ) : (
-              <p className="text-gray-500 text-sm">No framework selected.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">No framework selected.</p>
             )}
           </div>
         </div>
 
         <button
           type="submit"
-          className="w-full bg-gray-800 text-white px-6 py-3 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 font-semibold text-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="w-full bg-gray-800 text-white dark:bg-gray-300 dark:text-gray-800 px-6 py-3 rounded-md hover:bg-gray-700 dark:hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 font-semibold text-lg disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:cursor-not-allowed"
           disabled={isLoading}
         >
           {isLoading ? 'Generating...' : 'Generate Prompt'}
         </button>
       </form>
 
-      {isLoading && (
-        <div className="mt-8 pt-6 border-t border-gray-200 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-          <p className="ml-4 text-gray-600">Generating refined prompt...</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="mt-8 p-8 bg-red-50 rounded-lg shadow-md max-w-3xl mx-auto border border-red-200 flex items-center">
-          <AlertTriangle className="h-8 w-8 text-red-500" />
-          <div className="ml-4">
-            <p className="font-semibold text-red-700">An error occurred:</p>
-            <p className="text-red-600">{error}</p>
-          </div>
-        </div>
-      )}
-
-      {result && !isLoading && !error && (
-        <div className="mt-8 pt-6 border-t border-gray-200 space-y-6">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Generated Prompt</h2>
-                <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => handleCopy(parsedPrompt, 'prompt')}
-                        className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 transition-colors text-sm"
-                        aria-label="Copy prompt"
-                    >
-                        {isPromptCopied ? (
-                            <>
-                                <Check className="h-4 w-4 text-green-500" />
-                                <span className="text-green-500">Copied!</span>
-                            </>
-                        ) : (
-                            <>
-                                <Copy className="h-4 w-4" />
-                                <span>Copy</span>
-                            </>
-                        )}
-                    </button>
-                    <button onClick={() => setShowRefineModal(true)} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors text-sm font-medium">
-                        <RefreshCw className="h-4 w-4" />
-                        Refine
-                    </button>
-                </div>
-            </div>
-            <div className="bg-white p-6 border border-gray-200 rounded-md">
-              <pre className="whitespace-pre-wrap font-sans text-sm">{parsedPrompt}</pre>
-            </div>
-            
-            {parsedExplanation && (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-bold text-gray-800">Explanation</h3>
-                    <button 
-                        onClick={() => handleCopy(parsedExplanation, 'explanation')}
-                        className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 transition-colors text-sm"
-                        aria-label="Copy explanation"
-                    >
-                        {isExplanationCopied ? (
-                            <>
-                                <Check className="h-4 w-4 text-green-500" />
-                                <span className="text-green-500">Copied!</span>
-                            </>
-                        ) : (
-                            <>
-                                <Copy className="h-4 w-4" />
-                                <span>Copy</span>
-                            </>
-                        )}
-                    </button>
-                </div>
-                <div className="bg-white p-6 border border-gray-200 rounded-md">
-                  <pre className="whitespace-pre-wrap font-sans text-sm">{parsedExplanation}</pre>
-                </div>
-              </div>
-            )}
-        </div>
-      )}
     </div>
   )
 }

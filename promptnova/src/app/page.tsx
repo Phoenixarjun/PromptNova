@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from 'react';
-import  Footer  from '@/components/Footer';
+import Footer from '@/components/Footer';
 import { Form } from '@/components/Home/Form';
 import { HeroSection } from '@/components/Home/HeroSection';
+import { ResultDisplay } from '@/components/Home/ResultDisplay';
 import { Sidebar } from '@/components/Home/Sidebar';
 import Navbar from '@/components/Navbar';
 
@@ -13,11 +14,11 @@ export default function Home() {
   const [error, setError] = useState('');
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
       <Navbar />
       <div className="flex flex-1 flex-col md:flex-row">
         <Sidebar />
-        <main className="flex-1 bg-gray-50">
+        <main className="flex-1 bg-gray-50 dark:bg-gray-800/50">
           <HeroSection />
           <Form
             result={result}
@@ -25,8 +26,8 @@ export default function Home() {
             setIsLoading={setIsLoading}
             setError={setError}
             isLoading={isLoading}
-            error={error}
           />
+          <ResultDisplay result={result} isLoading={isLoading} error={error} />
         </main>
       </div>
       <Footer />
