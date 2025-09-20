@@ -1,28 +1,31 @@
 from langchain.prompts import PromptTemplate
 from .prompt_agent import PromptAgent
 from typing import Dict, Optional, List, Literal
-import json
-import re
 from src.logger import logger
 from pydantic import BaseModel, Field
 
 class EvaluationSummary(BaseModel):
-    key_points: List[str] = Field(description="List of remaining issues, including style/framework mismatches.")
-    guidance: str = Field(description="A new improvement suggestion to fix the remaining issues.")
+    key_points: List[str] = Field(
+        description="List of remaining issues, including style/framework mismatches, clarity gaps, or missed suggestions."
+    )
+    guidance: str = Field(
+        description="A clear, actionable recommendation to fix the remaining issues. Must be concise and directly relevant."
+    )
 
 class EvaluationResult(BaseModel):
     status: Literal["yes", "no"]
-    summary: Optional[EvaluationSummary] = Field(None, description="Summary of issues if status is 'no'.")
+    summary: Optional[EvaluationSummary] = Field(
+        None, description="Summary of issues if status is 'no'."
+    )
 
 class UpdateEvaluator(PromptAgent):
-    """Agent for evaluating the updated prompt."""
+    """Top-tier agent for rigorously evaluating an updated prompt."""
 
     def __init__(self, api_key: Optional[str] = None):
         super().__init__(api_key=api_key)
         self.structured_llm = self.llm.with_structured_output(EvaluationResult)
 
     async def refine(self, user_input: str, **kwargs) -> str:
-        """Placeholder refine method to satisfy abstract base class requirement."""
         raise NotImplementedError("UpdateEvaluator agent is designed for evaluation, not refinement.")
 
     def evaluate(
@@ -33,27 +36,39 @@ class UpdateEvaluator(PromptAgent):
         style: Optional[List[str]],
         framework: Optional[str],
     ) -> Dict:
-        """Evaluates if the generated_prompt has successfully incorporated the suggestions."""
+        """Evaluates whether the updated prompt has correctly applied improvements and meets expert-level quality."""
         evaluation_template = PromptTemplate(
             input_variables=["user_prompt", "generated_prompt", "suggestions", "style", "framework"],
-            template="""You are an expert prompt evaluator. Your task is to determine if the 'Updated Prompt' has successfully incorporated the 'Improvement Suggestions' and adheres to the required 'Style' and 'Framework', to better align with the 'Original User Prompt'.
+            template="""You are a world-class Prompt Evaluation Expert with decades of experience in advanced LLM optimization. 
+Your role: rigorously assess whether the 'Updated Prompt' integrates the required improvements while maintaining fidelity to style, framework, and user intent. 
 
-Original User Prompt: {user_prompt}
+Strict constraints:
+- Do NOT rewrite the prompt.
+- Output must strictly match the EvaluationResult schema.
+- Only mark status = "yes" if ALL criteria are satisfied.
 
-Improvement Suggestions: {suggestions}
+Evaluation Criteria:
+1. Has the Updated Prompt fully applied the 'Improvement Suggestions'?
+2. Does it correctly implement the required Style and Framework?
+3. Is it clear, precise, and demonstrably stronger than the original?
+
+Original User Prompt:
+{user_prompt}
+
+Improvement Suggestions:
+{suggestions}
 
 Required Style: {style}
 Required Framework: {framework}
 
-Updated Prompt: {generated_prompt}
+Updated Prompt:
+{generated_prompt}
 
-Evaluation:
-1. Does the 'Updated Prompt' address the deficiencies and apply the adjustments from the 'Improvement Suggestions'?
-2. Does the 'Updated Prompt' correctly apply the required 'Style' and 'Framework'?
-3. Is the 'Updated Prompt' a clear and high-quality prompt that is likely to produce a better result than before?
-
-If all are true, set status to "yes".
-Otherwise, set status to "no" and provide a summary with 'key_points' (a list of remaining issues) and 'guidance' (a new improvement suggestion).
+Now respond ONLY with:
+- status: "yes" if all criteria are satisfied, otherwise "no".
+- If "no", include:
+  - key_points: list of specific remaining issues.
+  - guidance: one actionable suggestion to fix those issues.
 """
         )
         chain = evaluation_template | self.structured_llm
@@ -68,11 +83,12 @@ Otherwise, set status to "no" and provide a summary with 'key_points' (a list of
             return response.dict()
         except Exception as e:
             logger.error(f"Structured output parsing failed in UpdateEvaluator: {e}", exc_info=True)
-            # Fallback for when structured output fails
             return {
                 "status": "no",
                 "summary": {
-                    "key_points": ["LLM failed to produce valid structured JSON during evaluation."],
-                    "guidance": "Re-apply the original suggestions, focusing on one change at a time."
+                    "key_points": [
+                        "LLM failed to produce valid structured JSON during evaluation."
+                    ],
+                    "guidance": "Re-run evaluation with stricter schema enforcement and narrower scope."
                 }
             }
