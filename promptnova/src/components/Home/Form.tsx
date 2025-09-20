@@ -16,6 +16,8 @@ interface FormProps {
   setIsLoading: (loading: boolean) => void;
   setError: (error: string) => void;
   isLoading: boolean;
+  selectedModel: string;
+  selectedGroqModel: string;
 }
 
 const getCookie = (name: string): string | null => {
@@ -24,6 +26,8 @@ const getCookie = (name: string): string | null => {
   if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
   return null;
 };
+
+const getStorageKey = (model: string) => `${model}_api_key_encrypted`;
 
 const combos = [
   {
@@ -83,7 +87,7 @@ const combos = [
 ];
 
 
-export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, setError, isLoading }) => {
+export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, setError, isLoading, selectedModel, selectedGroqModel }) => {
   const types = [
     { name: 'Zero Shot', slug: 'zero_shot' },
     { name: 'One Shot', slug: 'one_shot' },
@@ -271,8 +275,11 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     setIsLoading(true);
     setError('');
 
-    const encryptedApiKey = localStorage.getItem('gemini_api_key_encrypted');
-    const password = getCookie('api_key_password');
+    const storageKey = getStorageKey(selectedModel);
+    const passwordCookieName = `api_key_password_${selectedModel}`;
+
+    const encryptedApiKey = localStorage.getItem(storageKey);
+    const password = getCookie(passwordCookieName);
 
     if (encryptedApiKey && !password) {
       setIsReauthenticating(true);
@@ -280,9 +287,6 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
       setIsLoading(false);
       return;
     }
-
-    console.log(encryptedApiKey);
-    console.log(password);
 
     let finalPromptText = promptText;
 
@@ -322,6 +326,8 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
       framework: selectedFramework,
       api_key: encryptedApiKey,
       password: password,
+      selected_model: selectedModel,
+      selected_groq_model: selectedGroqModel,
     };
 
     try {
@@ -374,7 +380,8 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     setIsLoading(true);
     setError('');
 
-    const encryptedKey = localStorage.getItem('gemini_api_key_encrypted');
+    const storageKey = getStorageKey(selectedModel);
+    const encryptedKey = localStorage.getItem(storageKey);
     if (!encryptedKey) {
         setError("Encrypted key not found. Please save it again in Settings.");
         setIsLoading(false);
@@ -389,8 +396,8 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
             throw new Error('Incorrect password.');
         }
 
-        // Password is correct, refresh the cookie for 7 days
-        document.cookie = `api_key_password=${reauthPassword};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
+        const passwordCookieName = `api_key_password_${selectedModel}`;
+        document.cookie = `${passwordCookieName}=${reauthPassword};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
         
         setIsReauthenticating(false);
         setReauthPassword('');
@@ -415,7 +422,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
                         <div className="relative">
                             <input id="reauth-password-form" type={showPassword ? 'text' : 'password'} value={reauthPassword} onChange={(e) => setReauthPassword(e.target.value)} className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Enter password" autoFocus />
                             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
-                                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />} 
                             </button>
                         </div>
                     </div>
@@ -437,6 +444,8 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         onRefined={(newPrompt) => { setResult(newPrompt); }}
         style={selectedTypes}
         framework={selectedFramework}
+        selectedModel={selectedModel}
+        selectedGroqModel={selectedGroqModel}
       />}
       <form onSubmit={handleSubmit}>
         <div className="flex justify-center mb-6">
@@ -683,3 +692,4 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     </div>
   )
 }
+

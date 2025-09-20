@@ -11,15 +11,54 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
-const API_KEY_STORAGE_ITEM = 'gemini_api_key_encrypted';
+interface SidebarProps {
+    selectedModel: string;
+    setSelectedModel: (model: string) => void;
+    selectedGroqModel: string;
+    setSelectedGroqModel: (model: string) => void;
+}
 
-export const Sidebar = () => {
+const getStorageKey = (model: string) => `${model}_api_key_encrypted`;
+
+const MODELS_CONFIG: { [key: string]: { label: string; url: string; models?: { label: string; value: string }[] } } = {
+    gemini: {
+        label: "Gemini API Key",
+        url: "https://aistudio.google.com/app/apikey",
+    },
+    mistral: {
+        label: "Mistral API Key",
+        url: "https://console.mistral.ai/api-keys/",
+    },
+    groq: {
+        label: "Groq API Key",
+        url: "https://console.groq.com/keys",
+        models: [
+            { label: "Default (Llama3 8b)", value: "llama3-8b-8192" },
+            { label: "Qwen3 32b", value: "qwen/qwen3-32b" },
+            { label: "Llama 3.1 8b Instant", value: "llama-3.1-8b-instant" },
+            { label: "Compound", value: "groq/compound" },
+            { label: "Compound Mini", value: "groq/compound-mini" },
+            { label: "GPT-OSS 120b", value: "openai/gpt-oss-120b" },
+            { label: "GPT-OSS 20b", value: "openai/gpt-oss-20b" },
+            { label: "Llama 3.3 70b Versatile", value: "llama-3.3-70b-versatile" },
+            { label: "Llama 4 Scout 17b", value: "meta-llama/llama-4-scout-17b-16e-instruct" },
+        ]
+    }
+};
+
+export const Sidebar: React.FC<SidebarProps> = ({ selectedModel, setSelectedModel, selectedGroqModel, setSelectedGroqModel }) => {
     const [apiKeyInput, setApiKeyInput] = useState('');
     const [isKeySaved, setIsKeySaved] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     
-    // State for the password prompt
     const [isPrompting, setIsPrompting] = useState(false);
     const [password, setPassword] = useState('');
     const [promptConfig, setPromptConfig] = useState({ title: '', action: '' });
@@ -36,22 +75,25 @@ export const Sidebar = () => {
     }, []);
 
     useEffect(() => {
-        const storedKey = localStorage.getItem(API_KEY_STORAGE_ITEM);
+        const storageKey = getStorageKey(selectedModel);
+        const storedKey = localStorage.getItem(storageKey);
         if (storedKey) {
             setIsKeySaved(true);
             setApiKeyInput('********************');
+            setIsEditing(false);
         } else {
-            setIsEditing(true); 
+            setIsKeySaved(false);
+            setApiKeyInput('');
+            setIsEditing(true);
         }
-    }, []);
+    }, [selectedModel]);
 
     const performSaveNewKey = (pwd: string) => {
-        // Encrypt the key. CryptoJS handles salting automatically.
+        const storageKey = getStorageKey(selectedModel);
         const encrypted = CryptoJS.AES.encrypt(apiKeyInput, pwd).toString();
-        localStorage.setItem(API_KEY_STORAGE_ITEM, encrypted);
-        // Save password to a cookie that expires in 7 days
-        document.cookie = `api_key_password=${pwd};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
-        
+        localStorage.setItem(storageKey, encrypted);
+        document.cookie = `api_key_password_${selectedModel}=${pwd};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
+
         setIsKeySaved(true);
         setIsEditing(false);
         setApiKeyInput('********************');
@@ -59,7 +101,8 @@ export const Sidebar = () => {
     };
 
     const performEdit = (pwd: string) => {
-        const encryptedKey = localStorage.getItem(API_KEY_STORAGE_ITEM);
+        const storageKey = getStorageKey(selectedModel);
+        const encryptedKey = localStorage.getItem(storageKey);
 
         if (!encryptedKey) {
             setPromptError("Encrypted key not found. Please save it again.");
@@ -77,9 +120,8 @@ export const Sidebar = () => {
 
             setApiKeyInput(decryptedKey);
             setIsEditing(true);
-            setVerifiedPassword(pwd); // Store password for the save action
-            // Refresh the password cookie for another 7 days
-            document.cookie = `api_key_password=${pwd};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
+            setVerifiedPassword(pwd);
+            document.cookie = `api_key_password_${selectedModel}=${pwd};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
             resetPrompt();
         } catch (e) {
             console.error("Decryption failed:", e);
@@ -88,7 +130,8 @@ export const Sidebar = () => {
     };
 
     const performDelete = (pwd: string) => {
-        const encryptedKey = localStorage.getItem(API_KEY_STORAGE_ITEM);
+        const storageKey = getStorageKey(selectedModel);
+        const encryptedKey = localStorage.getItem(storageKey);
         if (!encryptedKey) {
             setPromptError("Key not found.");
             return;
@@ -103,8 +146,8 @@ export const Sidebar = () => {
                 return;
             }
 
-            localStorage.removeItem(API_KEY_STORAGE_ITEM);
-            document.cookie = 'api_key_password=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+            localStorage.removeItem(storageKey);
+            document.cookie = `api_key_password_${selectedModel}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
             setIsKeySaved(false);
             setApiKeyInput('');
             setIsEditing(true);
@@ -121,7 +164,7 @@ export const Sidebar = () => {
             return;
         }
         setPromptError('');
-        
+
         switch (promptConfig.action) {
             case 'save_new':
                 performSaveNewKey(password);
@@ -139,17 +182,15 @@ export const Sidebar = () => {
         if (!apiKeyInput || apiKeyInput === '********************') return;
 
         if (isKeySaved && isEditing && verifiedPassword) {
-            // This is an update after editing. We have the verified password.
+            const storageKey = getStorageKey(selectedModel);
             const encrypted = CryptoJS.AES.encrypt(apiKeyInput, verifiedPassword).toString();
-            localStorage.setItem(API_KEY_STORAGE_ITEM, encrypted);
-            // Refresh the password cookie for another 7 days
-            document.cookie = `api_key_password=${verifiedPassword};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
-            
+            localStorage.setItem(storageKey, encrypted);
+            document.cookie = `api_key_password_${selectedModel}=${verifiedPassword};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
+
             setIsEditing(false);
             setVerifiedPassword(null);
             setApiKeyInput('********************');
         } else if (!isKeySaved) {
-            // This is a brand new key.
             setPromptConfig({ title: 'Set a Password to Secure Your Key', action: 'save_new' });
             setIsPrompting(true);
         }
@@ -254,11 +295,69 @@ export const Sidebar = () => {
                     <Settings className="h-5 w-5 text-gray-600" />
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Settings</h2>
                 </div>
-                
+
+                <div>
+                    <div className="flex items-center justify-between mb-2">
+                        <Label htmlFor="model-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Choose Model
+                        </Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6">
+                                    <Info className="h-4 w-4" />
+                                    <span className="sr-only">Model Information</span>
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80" side="top">
+                                <div className="flex flex-col space-y-2 text-sm">
+                                    <h4 className="font-semibold">Model Recommendations</h4>
+                                    <p>
+                                        <span className="font-bold">Gemini:</span> Expert model that provides very detailed, long, and well-structured prompts. It may take a bit more time but is highly recommended for quality.
+                                    </p>
+                                    <p>
+                                        <span className="font-bold">Groq:</span> Faster than Gemini, but due to context window limitations, it provides smaller, more concise prompts. Still a great choice for quick iterations.
+                                    </p>
+                                    <p>
+                                        <span className="font-bold">Mistral:</span> A middle ground in terms of performance, providing average-length prompts with good quality.
+                                    </p>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                    <Select value={selectedModel} onValueChange={setSelectedModel}>
+                        <SelectTrigger id="model-select" className="w-full mt-2">
+                            <SelectValue placeholder="Select a model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="gemini">Gemini</SelectItem>
+                            <SelectItem value="mistral">Mistral</SelectItem>
+                            <SelectItem value="groq">Groq</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {selectedModel === 'groq' && (
+                    <div>
+                        <Label htmlFor="groq-model-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Groq Model
+                        </Label>
+                        <Select value={selectedGroqModel} onValueChange={setSelectedGroqModel}>
+                            <SelectTrigger id="groq-model-select" className="w-full mt-2">
+                                <SelectValue placeholder="Select a Groq model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {MODELS_CONFIG.groq.models?.map(model => (
+                                    <SelectItem key={model.value} value={model.value}>{model.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
+
                 <div>
                     <div className="flex items-center justify-between mb-2">
                         <Label htmlFor="api-key-input" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Gemini API Key
+                            {MODELS_CONFIG[selectedModel].label}
                         </Label>
                         <Popover>
                             <PopoverTrigger asChild>
@@ -269,28 +368,18 @@ export const Sidebar = () => {
                             </PopoverTrigger>
                             <PopoverContent className="w-80" side="top">
                                 <div className="flex flex-col space-y-2 text-sm">
-                                    <h4 className="font-semibold">How to get your Gemini API Key</h4>
-                                    <ol className="list-decimal list-inside space-y-1">
-                                        <li>
-                                            Go to{" "}
-                                            <a
-                                                href="https://aistudio.google.com/app/apikey"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-500 hover:underline"
-                                            >
-                                                Google AI Studio
-                                            </a>
-                                            .
-                                        </li>
-                                        <li>
-                                            Click on <strong>"Get API key"</strong>.
-                                        </li>
-                                        <li>
-                                            Click on <strong>"Create API key in new project"</strong>.
-                                        </li>
-                                        <li>Copy the generated API key and paste it here.</li>
-                                    </ol>
+                                    <h4 className="font-semibold">How to get your {MODELS_CONFIG[selectedModel].label}</h4>
+                                    <p>
+                                        Go to{" "}
+                                        <a
+                                            href={MODELS_CONFIG[selectedModel].url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-500 hover:underline"
+                                        >
+                                            the official website
+                                        </a>, create an account, and generate your API key.
+                                    </p>
                                 </div>
                             </PopoverContent>
                         </Popover>

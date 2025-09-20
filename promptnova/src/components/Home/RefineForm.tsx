@@ -10,6 +10,8 @@ interface RefineFormProps {
   onRefined: (newPrompt: string) => void;
   style: string[];
   framework: string | null;
+  selectedModel: string;
+  selectedGroqModel: string;
 }
 
 const getCookie = (name: string): string | null => {
@@ -19,7 +21,7 @@ const getCookie = (name: string): string | null => {
   return null;
 };
 
-export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPrompt, onClose, onRefined, style, framework }) => {
+export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPrompt, onClose, onRefined, style, framework, selectedModel, selectedGroqModel }) => {
   const [feedback, setFeedback] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -35,8 +37,11 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
       return;
     }
 
-    const encryptedApiKey = localStorage.getItem('gemini_api_key_encrypted');
-    const password = getCookie('api_key_password');
+    const storageKey = `${selectedModel}_api_key_encrypted`;
+    const passwordCookieName = `api_key_password_${selectedModel}`;
+
+    const encryptedApiKey = localStorage.getItem(storageKey);
+    const password = getCookie(passwordCookieName);
 
     if (encryptedApiKey && !password) {
       setIsReauthenticating(true);
@@ -54,6 +59,8 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
       password: password,
       style: style,
       framework: framework,
+      selected_model: selectedModel,
+      selected_groq_model: selectedGroqModel,
     };
 
     try {
@@ -87,7 +94,8 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
     setIsLoading(true);
     setError('');
 
-    const encryptedKey = localStorage.getItem('gemini_api_key_encrypted');
+    const storageKey = `${selectedModel}_api_key_encrypted`;
+    const encryptedKey = localStorage.getItem(storageKey);
     if (!encryptedKey) {
         setError("Encrypted key not found. Please save it again in Settings.");
         setIsLoading(false);
@@ -102,11 +110,9 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
             throw new Error('Incorrect password.');
         }
 
-        // Password is correct, refresh the cookie for 7 days
-        document.cookie = `api_key_password=${reauthPassword};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
+        const passwordCookieName = `api_key_password_${selectedModel}`;
+        document.cookie = `${passwordCookieName}=${reauthPassword};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
         
-        // Now proceed with the original submission by calling handleSubmit again
-        // which will now find the cookie and proceed.
         setIsReauthenticating(false);
         await handleSubmit(e);
 
@@ -167,7 +173,7 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
           <div className="flex justify-end gap-4">
             <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Cancel</button>
             <button type="submit" disabled={isLoading} className="px-4 py-2 bg-gray-800 dark:bg-blue-600 text-white rounded-md flex items-center gap-2 disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'Refining...' : ''}`} />
               {isLoading ? 'Refining...' : 'Refine'}
             </button>
           </div>
