@@ -1,4 +1,4 @@
-"use client"
+'use client'
 import React, { useState, useEffect } from 'react';
 import { Info, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import CryptoJS from 'crypto-js';
@@ -346,7 +346,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
     const payload = {
       user_input: finalPromptText,
-      examples: examples.map(({ id: _, ...rest }) => rest).filter(ex => ex.input && ex.output),
+      examples: examples.map(ex => ({ input: ex.input, output: ex.output })).filter(ex => ex.input && ex.output),
       style: selectedTypes,
       framework: selectedFramework,
       api_key: encryptedApiKey,

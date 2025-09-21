@@ -1,4 +1,11 @@
-export const advancedTypeOptions = {
+export interface Field {
+  name: string;
+  label: string;
+  type: 'text' | 'textarea' | 'number';
+  description: string;
+}
+
+export const advancedTypeOptions: { [key: string]: Field[] } = {
     one_shot: [
       { name: 'example_input', label: 'Example Input', type: 'textarea', description: 'An example of the input you would provide.' },
       { name: 'example_output', label: 'Example Output', type: 'textarea', description: 'The corresponding output you expect.' },
@@ -21,9 +28,7 @@ export const advancedTypeOptions = {
     role: [
       { name: 'role_persona', label: 'Role Persona', type: 'text', description: 'The professional role for the AI (e.g., expert, senior developer).' },
     ],
-    few_shot: [
-      // The main 'examples' field is already handled by the primary UI. This is for additional, specific examples if needed.
-    ],
+    few_shot: [],
     self_consistency: [
       { name: 'samples', label: 'Consistency Samples', type: 'number', description: 'Number of samples for consistency voting (default: 3).' },
     ],
@@ -94,7 +99,7 @@ export const advancedTypeOptions = {
     ],
   };
   
-  export const advancedFrameworkOptions = {
+  export const advancedFrameworkOptions: { [key: string]: Field[] } = {
     co_star: [
       { name: 'context', label: 'Context', type: 'textarea', description: 'Optional background context for the task.' },
       { name: 'objective', label: 'Objective', type: 'textarea', description: 'Optional goal of the task.' },
@@ -233,4 +238,3 @@ export const advancedTypeOptions = {
       { name: 'output_combination_method', label: 'Combination Method', type: 'text', description: 'Optional method to combine outputs (majority_vote, average, weighted_average).' },
     ],
   };
-  

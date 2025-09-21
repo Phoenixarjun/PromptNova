@@ -1,5 +1,5 @@
 import React from 'react';
-import { advancedTypeOptions, advancedFrameworkOptions } from './advancedOptionsConfig';
+import { advancedTypeOptions, advancedFrameworkOptions, Field } from './advancedOptionsConfig';
 
 // Define a more specific type for advanced parameters
 interface AdvancedParams {
@@ -13,13 +13,6 @@ interface AdvancedParams {
       [key: string]: string;
     };
   };
-}
-
-interface Field {
-  name: string;
-  label: string;
-  type: 'text' | 'textarea';
-  description: string;
 }
 
 interface AdvancedOptionsProps {
@@ -76,8 +69,8 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
     }));
   };
 
-  const activeTypeOptions = selectedTypes.map(slug => ({ slug, fields: advancedTypeOptions[slug as keyof typeof advancedTypeOptions] })).filter(opt => opt.fields?.length > 0);
-  const activeFrameworkOptions = selectedFramework ? { slug: selectedFramework, fields: advancedFrameworkOptions[selectedFramework as keyof typeof advancedFrameworkOptions] } : null;
+  const activeTypeOptions = selectedTypes.map(slug => ({ slug, fields: advancedTypeOptions[slug] })).filter(opt => opt.fields?.length > 0);
+  const activeFrameworkOptions = selectedFramework ? { slug: selectedFramework, fields: advancedFrameworkOptions[selectedFramework] } : null;
 
   return (
     <div className="my-6 p-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
