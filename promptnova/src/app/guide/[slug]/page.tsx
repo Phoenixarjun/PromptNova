@@ -9,20 +9,20 @@ import guideData from '@/data/guide-details.json';
 
 const allItems = [...guideData.types, ...guideData.frameworks];
 
-// Generate static paths for all guide items
+// Generate static paths for all guide items, ensuring slugs are valid
 export function generateStaticParams() {
-  return allItems.map((item) => ({
-    slug: item.slug,
-  }));
+  return allItems
+    .filter(item => item && typeof item.slug === 'string' && item.slug)
+    .map((item) => ({
+      slug: item.slug,
+    }));
 }
 
-const DetailPage = ({ params }: { params: { slug: string } }) => {
-  const { slug } = params;
+const DetailPage = async ({ params }: { params: { slug: string } }) => {
+  const { slug } = await params;
   const item = allItems.find((i) => i.slug === slug);
 
-  if (!item) {
-    notFound();
-  }
+  if (!item) notFound();
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
