@@ -22,6 +22,7 @@ app = FastAPI(title="PromptNova API", description="API for refining prompts usin
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://promptnova.onrender.com"
 ]
 
 app.add_middleware(
