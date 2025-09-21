@@ -356,7 +356,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     };
 
     try {
-      const response = await fetch('https://promptnova.onrender.com/refine', {
+      const response = await fetch('http://127.0.0.1:8000/refine', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -5,6 +5,12 @@ from typing import Dict, Any, Optional
 import json
 import re
 from src.logger import logger
+from pydantic import BaseModel, Field
+
+
+class PromptOutput(BaseModel):
+    refined_prompt: str = Field(..., description="The full refined prompt string")
+    explanation: str = Field(..., description="Explanation of the improvements made")
 
 
 class FinalPrompt(PromptAgent):
@@ -13,6 +19,8 @@ class FinalPrompt(PromptAgent):
     def __init__(self, llm: Any):
         super().__init__(llm)
         self.evaluator = UpdateEvaluator(llm)
+        # Wrap LLM with structured output
+        self.structured_llm = llm.with_structured_output(PromptOutput)
 
     async def refine(self, user_input: str, **kwargs) -> str:
         refined_responses = kwargs.get("refined_responses", {})
@@ -23,7 +31,6 @@ class FinalPrompt(PromptAgent):
 
     def _parse_json_response(self, text: str) -> Optional[Dict]:
         """Extracts and parses JSON, handling markdown fences and raw JSON."""
-
         # 1. JSON inside ```json fences
         match = re.search(r"```(?:json)?\s*({.*?})\s*```", text, re.DOTALL)
         if match:
@@ -91,6 +98,7 @@ class FinalPrompt(PromptAgent):
 4.  **Clarity and Effectiveness**: Ensure the final prompt is clear, effective, and perfectly aligned with the primary framework's goals.
 5.  **No Meta-Text**: Do NOT include any meta-text or commentary inside the prompt itself.
 6.  **Long-Form and Detailed**: Always provide a detailed, well-defined, and comprehensive long-form prompt for the user, one that follows the full framework carefully and is structured as if you're creating your own agent.
+7.  **Code Block Naming Constraint:** Never return a generic triple-backtick fence alone. Always specify a meaningful language or context, e.g., ```sql, ```json, ```python etc., when returning code blocks.
 
 **Primary Framework Response:**
 {framework_response}
@@ -110,26 +118,23 @@ All strings must be properly escaped for JSON.
 '''
         )
 
-        chain = integration_template | self.llm
-        response = await chain.ainvoke({
+        # Swap in structured output chain
+        chain = integration_template | self.structured_llm
+        response: PromptOutput = await chain.ainvoke({
             "framework_response": framework_response,
             "user_input": user_input,
             "framework": framework,
             "type_prompts": json.dumps(type_prompts, indent=2)
         })
 
-        raw_response = getattr(response, "content", str(response))
+        refined_prompt = response.refined_prompt.strip()
+        explanation = response.explanation.strip()
 
-        # --- Robust parsing pipeline ---
-        response_data = self._parse_json_response(raw_response)
-        if not response_data or "refined_prompt" not in response_data:
-            logger.warning("JSON parsing failed, using direct extraction fallback")
-            response_data = self._extract_prompt_directly(raw_response)
+        # --- NEW: Ensure multi-line content uses proper SQL fences for frontend ---
+        if "\n" in refined_prompt and not refined_prompt.startswith("```"):
+            refined_prompt = f"```sql\n{refined_prompt}\n```"
 
-        refined_prompt = response_data.get("refined_prompt", "").strip()
-        explanation = response_data.get("explanation", "").strip()
-
-        # Final cleanup of fences
+        # Final cleanup of accidental fences
         if refined_prompt.startswith("```") and refined_prompt.endswith("```"):
             refined_prompt = re.sub(r'^```[a-zA-Z]*\s*\n?', '', refined_prompt)
             refined_prompt = re.sub(r'\n?\s*```$', '', refined_prompt).strip()
@@ -148,13 +153,13 @@ All strings must be properly escaped for JSON.
             logger.error("Self-evaluation returned None. Skipping feedback.")
             explanation += "\n\n**Self-Evaluation:** Could not be performed due to an internal error."
         elif evaluation_result.get("status") == "no":
-            eval_summary = evaluation_result.get("summary", {})
+            eval_summary = evaluation_result.get("summary") or {}
             eval_points = eval_summary.get("key_points", [])
             eval_guidance = eval_summary.get("guidance", "")
             explanation += (
                 "\n\n**Self-Evaluation Feedback:** The generated prompt has issues."
-                f"\n- **Issues:** {'; '.join(eval_points)}"
-                f"\n- **Guidance:** {eval_guidance}"
+                f"\n- **Issues:** {'; '.join(eval_points) if eval_points else 'None provided'}"
+                f"\n- **Guidance:** {eval_guidance or 'No guidance available'}"
             )
         else:
             explanation += "\n\n**Self-Evaluation:** Passed."
