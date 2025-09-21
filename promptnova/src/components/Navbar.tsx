@@ -27,10 +27,10 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="relative w-12 h-12 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-lg">PN</span>
-              </div>
+            <Link href="/" className="flex items-center">
+                <Image src="/Icon.png" alt="Icon" width={60} height={60}></Image>
+
+
             <span className="text-3xl font-bold bg-gradient-to-r from-gray-700 via-gray-600 to-gray-800 dark:from-gray-300 via-gray-200 to-gray-100 text-transparent bg-clip-text dark:p-[1px] dark:[-webkit-text-stroke:0.3px_white] dark:[text-stroke:0.3px_white]">
               PromptNova
             </span>

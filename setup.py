@@ -3,6 +3,11 @@ import setuptools
 with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
 
+def get_requirements(file_path: str):
+    """Returns a list of requirements from a requirements.txt file."""
+    with open(file_path) as f:
+        requirements = f.read().splitlines()
+    return [req for req in requirements if req and not req.startswith("#")]
 
 __version__ = "0.0.0"
 
@@ -25,4 +30,5 @@ setuptools.setup(
     packages=setuptools.find_packages(where="src"),
     package_dir={"": "src"},
     python_requires=">=3.10",
+    install_requires=get_requirements("requirements.txt"),
 )
