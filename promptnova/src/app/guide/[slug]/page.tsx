@@ -10,24 +10,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import guideData from '@/data/guide-details.json';
 
 const allItems = [...guideData.types, ...guideData.frameworks];
-interface DetailPageProps {
-  params: {
-    slug: string;
-  };
-}
+
 const GuideDetailView = ({ item }: { item: typeof allItems[0] }) => {
   const [copiedIndex, setCopiedIndex] = React.useState<number | null>(null);
 
   const handleCopy = (text: string, index: number) => {
-    // We only want to copy the "User Prompt" part for practical use.
     const promptToCopy = text.split('\n')[0].replace('User Prompt: ', '');
     navigator.clipboard.writeText(promptToCopy).then(() => {
       setCopiedIndex(index);
       setTimeout(() => {
         setCopiedIndex(null);
-      }, 2000); // Reset after 2 seconds
+      }, 2000);
     });
   };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
       <Navbar />
@@ -90,13 +86,11 @@ const GuideDetailView = ({ item }: { item: typeof allItems[0] }) => {
   );
 };
 
-const DetailPage = ({ params }: DetailPageProps) => {
+const DetailPage = ({ params }: { params: { slug: string } }) => {
   const { slug } = params;
   const item = allItems.find((i) => i.slug === slug);
 
-  // Data fetching and routing logic is handled on the server.
   if (!item) {
-    // Render the "Not Found" UI from the server.
     return (
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
         <Navbar />
@@ -114,7 +108,6 @@ const DetailPage = ({ params }: DetailPageProps) => {
     );
   }
 
-  // Pass the resolved data to the client component for rendering.
   return <GuideDetailView item={item} />;
 };
 
