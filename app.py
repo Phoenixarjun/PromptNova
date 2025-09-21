@@ -11,6 +11,7 @@ from src.logger import logger
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
@@ -124,4 +125,6 @@ async def update_prompt_endpoint(update_input: UpdatePromptSchema):
         logger.error(f"An unexpected error occurred in /update_prompt: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
-app.mount("/", StaticFiles(directory="promptnova/.next", html=True), name="static")
+frontend_dir = Path("promptnova/.next")
+if frontend_dir.exists() and frontend_dir.is_dir():
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="static")
