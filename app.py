@@ -124,4 +124,4 @@ async def update_prompt_endpoint(update_input: UpdatePromptSchema):
         logger.error(f"An unexpected error occurred in /update_prompt: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
-app.mount("/", StaticFiles(directory="promptnova/out", html=True), name="static")
+app.mount("/", StaticFiles(directory="promptnova/.next", html=True), name="static")
