@@ -7,20 +7,21 @@ import guideData from "@/data/guide-details.json";
 
 const allItems = [...guideData.types, ...guideData.frameworks];
 
-// Generate static params
+// Generate static paths
 export function generateStaticParams() {
   return allItems
     .filter(item => item && typeof item.slug === "string")
     .map(item => ({ slug: item.slug }));
 }
 
-// ✅ Make page async
+// ✅ Make the page async
 const DetailPage = async ({ params }: { params: { slug: string } }) => {
   const { slug } = params;
 
-  // Simulate async (required for type)
-  const item = await (async () =>
-    allItems.find(i => i.slug === slug))();
+  // Wrap lookup in a Promise to satisfy TS
+  const item = await new Promise<typeof allItems[0] | undefined>((resolve) => {
+    resolve(allItems.find(i => i.slug === slug));
+  });
 
   if (!item) notFound();
 
