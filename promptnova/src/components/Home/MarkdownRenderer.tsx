@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -57,24 +57,24 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ node: _node, inline, className, c
 };
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
+  // @ts-ignore
+    const components = {
+    code: CodeBlock,
+    h1: ({node: _1, ...props}: React.HTMLAttributes<HTMLHeadingElement>) => <h1 className="text-3xl font-bold mt-8 mb-4 text-gray-900 dark:text-gray-100" {...props} />,
+    h2: ({node: _2, ...props}: React.HTMLAttributes<HTMLHeadingElement>) => <h2 className="text-2xl font-bold mt-6 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2 text-gray-800 dark:text-gray-200" {...props} />,
+    h3: ({node: _3, ...props}: React.HTMLAttributes<HTMLHeadingElement>) => <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-800 dark:text-gray-200" {...props} />,
+    p: ({node: _4, ...props}: React.HTMLAttributes<HTMLParagraphElement>) => <p className="leading-7 my-4 text-gray-700 dark:text-gray-300" {...props} />,
+    ul: ({node: _5, ...props}: React.HTMLAttributes<HTMLUListElement>) => <ul className="list-disc pl-6 my-4 space-y-2" {...props} />,
+    li: ({node: _6, ...props}: React.HTMLAttributes<HTMLLIElement>) => <li className="pl-2 text-gray-700 dark:text-gray-300" {...props} />,
+    strong: ({node: _7, ...props}: React.HTMLAttributes<HTMLElement>) => <strong className="font-bold text-gray-800 dark:text-gray-200" {...props} />,
+    blockquote: ({node: _8, ...props}: React.HTMLAttributes<HTMLQuoteElement>) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic text-gray-600 dark:text-gray-400" {...props} />,
+  };
+
   return (
     <div className="prose prose-gray max-w-none dark:prose-invert">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          code: CodeBlock,
-          h1: ({node: _1, ...props}) => <h1 className="text-3xl font-bold mt-8 mb-4 text-gray-900 dark:text-gray-100" {...props} />,
-          h2: ({node: _2, ...props}) => <h2 className="text-2xl font-bold mt-6 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2 text-gray-800 dark:text-gray-200" {...props} />,
-          h3: ({node: _3, ...props}) => <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-800 dark:text-gray-200" {...props} />,
-          p: ({node: _4, ...props}) => <p className="leading-7 my-4 text-gray-700 dark:text-gray-300" {...props} />,
-          ul: ({node: _5, ...props}) => <ul className="list-disc pl-6 my-4 space-y-2" {...props} />,
-          li: ({node: _6, ...props}) => <li className="pl-2 text-gray-700 dark:text-gray-300" {...props} />,
-          strong: ({node: _7, ...props}) => <strong className="font-bold text-gray-800 dark:text-gray-200" {...props} />,
-          blockquote: ({node: _8, ...props}) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic text-gray-600 dark:text-gray-400" {...props} />,
-        }}
-      >
-        {content}
-      </ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+            {content}
+        </ReactMarkdown>
     </div>
   );
 };

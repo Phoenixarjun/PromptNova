@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertTriangle, Copy, Check, RefreshCw } from 'lucide-react';
@@ -10,56 +10,47 @@ interface ResultDisplayProps {
   error: string;
 }
 
+interface ParsedResult {
+  explanation: string;
+  refined_prompt: string;
+}
+
 export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error }) => {
-  const [parsedPrompt, setParsedPrompt] = useState('');
-  const [parsedExplanation, setParsedExplanation] = useState('');
+  const [parsedResult, setParsedResult] = useState<ParsedResult | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
+  useEffect(() => {
+    if (result) {
+      try {
+        const parsed = JSON.parse(result);
+        if (typeof parsed === 'object' && parsed !== null && (parsed.refined_prompt || parsed.explanation)) {
+          setParsedResult({
+            refined_prompt: parsed.refined_prompt || '',
+            explanation: parsed.explanation || ''
+          });
+        } else {
+          // Fallback for when result is a plain string
+          setParsedResult({ refined_prompt: String(result), explanation: '' });
+        }
+      } catch (e) {
+        // Fallback for when result is a non-JSON string
+        setParsedResult({ refined_prompt: result, explanation: '' });
+      }
+    } else {
+      setParsedResult(null);
+    }
+  }, [result]);
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(parsedPrompt);
+    if (!parsedResult?.refined_prompt) return;
+    navigator.clipboard.writeText(parsedResult.refined_prompt);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
 
   const handleRefine = () => {
-    // This will be caught by an event listener in the Form component
     window.dispatchEvent(new CustomEvent('show-refine-modal'));
   };
-
-  useEffect(() => {
-    if (result) {
-      const explanationSeparator = "**Explanation of Improvements and Rationale:**";
-      const promptSeparator = "**Refined Prompt:**";
-      
-      let promptPart = result;
-      let explanationPart = '';
-
-      if (result.includes(explanationSeparator)) {
-        const parts = result.split(explanationSeparator);
-        promptPart = parts[0];
-        explanationPart = parts[1] || '';
-      }
-
-      if (promptPart.includes(promptSeparator)) {
-        promptPart = promptPart.split(promptSeparator)[1];
-      }
-      
-      const startIndex = promptPart.indexOf('```');
-      const endIndex = promptPart.lastIndexOf('```');
-      let cleanedPrompt;
-      if (startIndex !== -1 && endIndex > startIndex) {
-        cleanedPrompt = promptPart.substring(startIndex + 3, endIndex).replace(/^[a-zA-Z]*\n?/, '').trim();
-      } else {
-        cleanedPrompt = promptPart.trim();
-      }
-      
-      setParsedPrompt(cleanedPrompt);
-      setParsedExplanation(explanationPart.trim());
-    } else {
-      setParsedPrompt('');
-      setParsedExplanation('');
-    }
-  }, [result]);
 
   if (isLoading) {
     return (
@@ -82,14 +73,15 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading,
     );
   }
 
-  if (!result) {
+  if (!parsedResult) {
     return null;
   }
 
   return (
-    <div className="max-w-3xl mx-auto my-8">
-      {result && !isLoading && !error && (
-        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-6">
+    <div className="max-w-3xl mx-auto my-8 space-y-8">
+      {/* Refined Prompt Section */}
+      {parsedResult.refined_prompt && (
+        <div>
           <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Generated Prompt</h2>
               <div className="flex items-center gap-2">
@@ -104,17 +96,20 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading,
               </div>
           </div>
           <div className="bg-white dark:bg-gray-900 p-6 border border-gray-200 dark:border-gray-700 rounded-md">
-            <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 dark:text-gray-200">{parsedPrompt}</pre>
+            <MarkdownRenderer content={parsedResult.refined_prompt} />
           </div>
-          {parsedExplanation && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Explanation</h3>
-              <div className="bg-white dark:bg-gray-900 p-6 border border-gray-200 dark:border-gray-700 rounded-md">
-                <MarkdownRenderer content={parsedExplanation} />
-              </div>
-            </div>
-          )}
-        </div>)}
+        </div>
+      )}
+
+      {/* Explanation Section */}
+      {parsedResult.explanation && (
+        <div>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Explanation</h2>
+          <div className="bg-white dark:bg-gray-900 p-6 border border-gray-200 dark:border-gray-700 rounded-md">
+            <MarkdownRenderer content={parsedResult.explanation} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

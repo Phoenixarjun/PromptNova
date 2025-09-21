@@ -1,6 +1,6 @@
 from langchain.prompts import PromptTemplate
 from .prompt_agent import PromptAgent
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Any
 from pydantic import BaseModel, Field
 
 class ReviewSuggestions(BaseModel):
@@ -32,39 +32,26 @@ class FeedbackAnalyzerAgent(PromptAgent):
     ) -> ReviewSuggestions:
         """
         Analyzes prompts and feedback to generate structured suggestions.
-        Constraints:
-        - Maintain fidelity to final_prompt structure.
-        - Focus only on actionable refinements tied to feedback, style, and framework.
-        - Output strictly follows ReviewSuggestions schema.
         """
         analyzer_template = PromptTemplate(
             input_variables=["original_prompt", "final_prompt", "user_feedback", "style", "framework"],
-            template="""You are a world-class Prompt Engineering Expert with 20+ years of experience optimizing prompts for advanced LLMs.
-Your role: act as an impartial, rigorous reviewer who provides only structured, actionable improvement insights.
-Do not rewrite the prompt. Do not expand outside scope. Only diagnose deficiencies, propose adjustments, and optionally offer phrasing suggestions.
+            template='''You are an expert Prompt Reviewer.
 
-Guidelines:
-- Stay focused on user feedback.
-- Ensure recommendations explicitly align with the declared style and framework.
-- Be precise, concise, and avoid generic advice.
-- Output must strictly follow the JSON schema (ReviewSuggestions).
+**Task:** Analyze the 'Final Prompt' based on the 'User Feedback' and provide structured improvement suggestions.
 
-Original Prompt:
-{original_prompt}
+**Inputs:**
+- Style: {style}
+- Framework: {framework}
+- Original Prompt: {original_prompt}
+- Final Prompt: {final_prompt}
+- User Feedback: {user_feedback}
 
-Final Generated Prompt (to evaluate):
-{final_prompt}
+**Instructions:**
+1.  **Identify Deficiencies:** List specific weaknesses in the 'Final Prompt' according to the feedback.
+2.  **Suggest Adjustments:** Provide actionable recommendations to fix the deficiencies.
+3.  **Offer Phrasing (Optional):** Suggest alternative phrasing.
 
-User Feedback:
-{user_feedback}
-
-Prompting Types (Style): {style}
-Prompting Framework: {framework}
-
-Now analyze carefully and return:
-1. Specific deficiencies in the final prompt.
-2. Concrete, actionable adjustments to fix them.
-3. Optional phrasing or stylistic suggestions that remain faithful to the required style/framework."""
+Your output must be a JSON object.'''
         )
         chain = analyzer_template | self.structured_llm
         return chain.invoke({

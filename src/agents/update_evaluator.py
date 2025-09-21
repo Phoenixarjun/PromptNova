@@ -39,37 +39,24 @@ class UpdateEvaluator(PromptAgent):
         """Evaluates whether the updated prompt has correctly applied improvements and meets expert-level quality."""
         evaluation_template = PromptTemplate(
             input_variables=["user_prompt", "generated_prompt", "suggestions", "style", "framework"],
-            template="""You are a world-class Prompt Evaluation Expert with decades of experience in advanced LLM optimization. 
-Your role: rigorously assess whether the 'Updated Prompt' integrates the required improvements while maintaining fidelity to style, framework, and user intent. 
+            template='''You are a Prompt Evaluation Expert.
 
-Strict constraints:
-- Do NOT rewrite the prompt.
-- Output must strictly match the EvaluationResult schema.
-- Only mark status = "yes" if ALL criteria are satisfied.
+**Task:** Evaluate if the 'Updated Prompt' has correctly integrated the 'Improvement Suggestions'.
 
-Evaluation Criteria:
-1. Has the Updated Prompt fully applied the 'Improvement Suggestions'?
-2. Does it correctly implement the required Style and Framework?
-3. Is it clear, precise, and demonstrably stronger than the original?
+**Inputs:**
+- Required Style: {style}
+- Required Framework: {framework}
+- Improvement Suggestions: {suggestions}
+- Updated Prompt: {generated_prompt}
 
-Original User Prompt:
-{user_prompt}
+**Instructions:**
+1.  **Verify Integration:** Has the 'Updated Prompt' fully applied the 'Improvement Suggestions'?
+2.  **Check Alignment:** Does the prompt align with the required 'Style' and 'Framework'?
+3.  **Decide Status:**
+    - If YES to both, set status to "yes".
+    - If NO to either, set status to "no" and provide `key_points` (remaining issues) and `guidance` (one actionable fix).
 
-Improvement Suggestions:
-{suggestions}
-
-Required Style: {style}
-Required Framework: {framework}
-
-Updated Prompt:
-{generated_prompt}
-
-Now respond ONLY with:
-- status: "yes" if all criteria are satisfied, otherwise "no".
-- If "no", include:
-  - key_points: list of specific remaining issues.
-  - guidance: one actionable suggestion to fix those issues.
-"""
+Your output must be a JSON object.'''
         )
         chain = evaluation_template | self.structured_llm
         try:

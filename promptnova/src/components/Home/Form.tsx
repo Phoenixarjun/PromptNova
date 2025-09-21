@@ -224,30 +224,16 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
   useEffect(() => {
     if (result) {
-      const explanationSeparator = "**Explanation of Improvements and Rationale:**";
-      const promptSeparator = "**Refined Prompt:**";
-      
-      let promptPart = result;
-
-      if (result.includes(explanationSeparator)) {
-        const parts = result.split(explanationSeparator);
-        promptPart = parts[0];
+      try {
+        const parsed = JSON.parse(result);
+        if (parsed && parsed.refined_prompt) {
+          setParsedPrompt(parsed.refined_prompt);
+        } else {
+          setParsedPrompt(result); // Fallback to raw string
+        }
+      } catch (e) {
+        setParsedPrompt(result); // Fallback if not JSON
       }
-
-      if (promptPart.includes(promptSeparator)) {
-        promptPart = promptPart.split(promptSeparator)[1];
-      }
-      
-      const startIndex = promptPart.indexOf('```');
-      const endIndex = promptPart.lastIndexOf('```');
-      let cleanedPrompt;
-      if (startIndex !== -1 && endIndex > startIndex) {
-        cleanedPrompt = promptPart.substring(startIndex + 3, endIndex).replace(/^[a-zA-Z]*\n?/, '').trim();
-      } else {
-        cleanedPrompt = promptPart.trim();
-      }
-      
-      setParsedPrompt(cleanedPrompt);
     } else {
       setParsedPrompt('');
     }
@@ -343,6 +329,10 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         finalPromptText = `${expertDetailsString}\n\n---\n\n${promptText}`;
       }
     }
+    
+    if (selectedModel === 'groq') {
+      finalPromptText += "\n\n---\nInstruction: Your entire response must be a single, raw JSON object. Do not use tools, functions, or markdown formatting like ```json. Your output should start with { and end with }.";
+    }
 
     const payload = {
       user_input: finalPromptText,
@@ -356,8 +346,8 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     };
 
     try {
-      // const response = await fetch('http://127.0.0.1:8000/refine', {
-      const response = await fetch('https://promptnova.onrender.com/refine', {
+      const response = await fetch('http://127.0.0.1:8000/refine', {
+      // const response = await fetch('https://promptnova.onrender.com/refine', {
 
         method: 'POST',
         headers: {
@@ -384,27 +374,27 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
       }
 
       const data = await response.json();
-      if (data.output_str) {
-        try {
-          const parsedOutput = JSON.parse(data.output_str);
-          if (parsedOutput.error === 'parsing_failed') {
-            setErrorDialogContent({
-              message: parsedOutput.message,
-              rawResponse: parsedOutput.raw_response,
-            });
-            setShowErrorDialog(true);
-            setResult(parsedOutput.raw_response); // Show raw response in the background
-          } else {
-            setResult(data.output_str);
-          }
-        } catch {
-          // Not a JSON string, so it's a valid raw response
+
+      if (data && typeof data === 'object' && data.output_str) {
+        if (typeof data.output_str === 'object' && data.output_str.refined_prompt) {
+          setResult(JSON.stringify(data.output_str));
+        } else if (typeof data.output_str === 'string') {
           setResult(data.output_str);
+        } else {
+           setError("Received an unexpected response format from the server.");
+           setResult(JSON.stringify(data, null, 2));
         }
+      } else if (data && typeof data.refined_prompt === 'string') {
+        const output = {
+          explanation: data.explanation || '',
+          refined_prompt: data.refined_prompt
+        };
+        setResult(JSON.stringify(output));
       } else {
         setError("Received an unexpected response format from the server.");
-        console.error("Unexpected response:", data);
+        setResult(JSON.stringify(data, null, 2));
       }
+
     } catch (e) {
       setError(e instanceof Error ? e.message : 'An unknown error occurred.');
       setResult('');
