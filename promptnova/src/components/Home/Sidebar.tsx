@@ -397,7 +397,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel, setSelectedMode
                 {renderButtons()}
 
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    Your API key is stored securely in your browser's local storage and is never sent to our servers.
+                    Your API key is stored securely in your browser&apos;s local storage and is never sent to our servers.
                 </p>
             </div>
         </aside>

@@ -116,7 +116,7 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
         setIsReauthenticating(false);
         await handleSubmit(e);
 
-    } catch (err) {
+    } catch {
         setError("Decryption failed. Incorrect password.");
         setIsLoading(false);
     }

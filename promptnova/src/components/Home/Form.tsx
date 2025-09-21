@@ -1,4 +1,4 @@
-'use client'
+"use client"
 import React, { useState, useEffect } from 'react';
 import { Info, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import CryptoJS from 'crypto-js';
@@ -20,6 +20,17 @@ interface Example {
   input: string;
   output: string;
 }
+
+interface AdvancedParams {
+  types?: { [key: string]: { [key: string]: string } };
+  framework?: { [key: string]: { [key: string]: string } };
+}
+
+interface ValidationError {
+  loc?: (string | number)[];
+  msg?: string;
+}
+
 interface FormProps {
   result: string;
   setResult: (result: string) => void;
@@ -176,7 +187,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const [showPassword, setShowPassword] = useState(false);
   const [parsedPrompt, setParsedPrompt] = useState('');
   const [mode, setMode] = useState<'normal' | 'expert'>('normal');
-  const [advancedParams, setAdvancedParams] = useState<any>({ types: {}, framework: {} });
+  const [advancedParams, setAdvancedParams] = useState<AdvancedParams>({ types: {}, framework: {} });
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorDialogContent, setErrorDialogContent] = useState({ message: '', rawResponse: '' });
 
@@ -303,27 +314,29 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     let finalPromptText = promptText;
 
     if (mode === 'expert') {
-      const cleanParams: any = { types: {}, framework: {} };
+      const cleanParams: AdvancedParams = { types: {}, framework: {} };
 
-      Object.entries(advancedParams.types).forEach(([type, params]: [string, any]) => {
-        const cleanTypeParams = Object.fromEntries(Object.entries(params).filter(([_, v]) => v));
-        if (Object.keys(cleanTypeParams).length > 0) {
-          cleanParams.types[type] = cleanTypeParams;
-        }
-      });
+      if (advancedParams.types) {
+        Object.entries(advancedParams.types).forEach(([type, params]) => {
+          const cleanTypeParams = Object.fromEntries(Object.entries(params).filter(([, v]) => v));
+          if (Object.keys(cleanTypeParams).length > 0 && cleanParams.types) {
+            cleanParams.types[type] = cleanTypeParams;
+          }
+        });
+      }
 
       if (advancedParams.framework) {
         const frameworkSlug = Object.keys(advancedParams.framework)[0];
         if (frameworkSlug) {
           const frameworkParams = advancedParams.framework[frameworkSlug];
-          const cleanFrameworkParams = Object.fromEntries(Object.entries(frameworkParams).filter(([_, v]) => v));
-          if (Object.keys(cleanFrameworkParams).length > 0) {
+          const cleanFrameworkParams = Object.fromEntries(Object.entries(frameworkParams).filter(([, v]) => v));
+          if (Object.keys(cleanFrameworkParams).length > 0 && cleanParams.framework) {
             cleanParams.framework[frameworkSlug] = cleanFrameworkParams;
           }
         }
       }
       
-      const hasExpertData = Object.keys(cleanParams.types).length > 0 || Object.keys(cleanParams.framework).length > 0;
+      const hasExpertData = (cleanParams.types && Object.keys(cleanParams.types).length > 0) || (cleanParams.framework && Object.keys(cleanParams.framework).length > 0);
 
       if (hasExpertData) {
         const expertDetailsString = `Expert Details:\n${JSON.stringify(cleanParams, null, 2)}`;
@@ -333,7 +346,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
     const payload = {
       user_input: finalPromptText,
-      examples: examples.map(({ id, ...rest }) => rest).filter(ex => ex.input && ex.output),
+      examples: examples.map(({ id: _, ...rest }) => rest).filter(ex => ex.input && ex.output),
       style: selectedTypes,
       framework: selectedFramework,
       api_key: encryptedApiKey,
@@ -357,7 +370,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
         if (Array.isArray(errorMessage)) {
           errorMessage = errorMessage
-            .map((err: any) => {
+            .map((err: ValidationError) => {
               const loc = err.loc?.join(' > ') || 'N/A';
               const msg = err.msg || 'Unknown error';
               return `${msg} (at: ${loc})`;
@@ -382,7 +395,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
           } else {
             setResult(data.output_str);
           }
-        } catch (e) {
+        } catch {
           // Not a JSON string, so it's a valid raw response
           setResult(data.output_str);
         }
@@ -430,7 +443,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         setReauthPassword('');
         await handleSubmit(e);
 
-    } catch (err) {
+    } catch {
         setError("Decryption failed. Incorrect password.");
         setIsLoading(false);
     }

@@ -1,14 +1,35 @@
 import React from 'react';
 import { advancedTypeOptions, advancedFrameworkOptions } from './advancedOptionsConfig';
 
+// Define a more specific type for advanced parameters
+interface AdvancedParams {
+  types?: {
+    [key: string]: {
+      [key: string]: string;
+    };
+  };
+  framework?: {
+    [key: string]: {
+      [key: string]: string;
+    };
+  };
+}
+
+interface Field {
+  name: string;
+  label: string;
+  type: 'text' | 'textarea';
+  description: string;
+}
+
 interface AdvancedOptionsProps {
   selectedTypes: string[];
   selectedFramework: string | null;
-  advancedParams: any;
-  setAdvancedParams: (params: any) => void;
+  advancedParams: AdvancedParams;
+  setAdvancedParams: (params: AdvancedParams | ((prev: AdvancedParams) => AdvancedParams)) => void;
 }
 
-const renderField = (field: any, value: any, onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) => {
+const renderField = (field: Field, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) => {
   const commonProps = {
     id: field.name,
     name: field.name,
@@ -31,7 +52,7 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
   setAdvancedParams,
 }) => {
   const handleTypeChange = (typeSlug: string, fieldName: string, value: string) => {
-    setAdvancedParams((prev: any) => ({
+    setAdvancedParams((prev) => ({
       ...prev,
       types: {
         ...prev.types,
@@ -44,7 +65,7 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
   };
 
   const handleFrameworkChange = (frameworkSlug: string, fieldName: string, value: string) => {
-    setAdvancedParams((prev: any) => ({
+    setAdvancedParams((prev) => ({
       ...prev,
       framework: {
         [frameworkSlug]: {
@@ -69,7 +90,7 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
               {fields.map(field => (
                 <div key={field.name}>
                   <label htmlFor={field.name} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{field.label}</label>
-                  {renderField(field, advancedParams.types?.[slug]?.[field.name], (e) => handleTypeChange(slug, field.name, e.target.value))}
+                  {renderField(field, advancedParams.types?.[slug]?.[field.name] || '', (e) => handleTypeChange(slug, field.name, e.target.value))}
                 </div>
               ))}
             </div>
@@ -83,7 +104,7 @@ export const AdvancedOptions: React.FC<AdvancedOptionsProps> = ({
               {activeFrameworkOptions.fields.map(field => (
                 <div key={field.name}>
                   <label htmlFor={field.name} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{field.label}</label>
-                  {renderField(field, advancedParams.framework?.[activeFrameworkOptions.slug]?.[field.name], (e) => handleFrameworkChange(activeFrameworkOptions.slug, field.name, e.target.value))}
+                  {renderField(field, advancedParams.framework?.[activeFrameworkOptions.slug]?.[field.name] || '', (e) => handleFrameworkChange(activeFrameworkOptions.slug, field.name, e.target.value))}
                 </div>
               ))}
             </div>

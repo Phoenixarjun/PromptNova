@@ -9,7 +9,14 @@ interface MarkdownRendererProps {
   content: string;
 }
 
-const CodeBlock: React.FC<any> = ({ node, inline, className, children, ...props }) => {
+interface CodeBlockProps {
+    node?: unknown;
+    inline?: boolean;
+    className?: string;
+    children?: React.ReactNode;
+  }
+
+const CodeBlock: React.FC<CodeBlockProps> = ({ node: _, inline, className, children, ...props }) => {
   const [isCopied, setIsCopied] = useState(false);
   const match = /language-(\w+)/.exec(className || '');
   const codeString = String(children).replace(/\n$/, '');
@@ -56,14 +63,14 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
         remarkPlugins={[remarkGfm]}
         components={{
           code: CodeBlock,
-          h1: ({node, ...props}) => <h1 className="text-3xl font-bold mt-8 mb-4 text-gray-900 dark:text-gray-100" {...props} />,
-          h2: ({node, ...props}) => <h2 className="text-2xl font-bold mt-6 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2 text-gray-800 dark:text-gray-200" {...props} />,
-          h3: ({node, ...props}) => <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-800 dark:text-gray-200" {...props} />,
-          p: ({node, ...props}) => <p className="leading-7 my-4 text-gray-700 dark:text-gray-300" {...props} />,
-          ul: ({node, ...props}) => <ul className="list-disc pl-6 my-4 space-y-2" {...props} />,
-          li: ({node, ...props}) => <li className="pl-2 text-gray-700 dark:text-gray-300" {...props} />,
-          strong: ({node, ...props}) => <strong className="font-bold text-gray-800 dark:text-gray-200" {...props} />,
-          blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic text-gray-600 dark:text-gray-400" {...props} />,
+          h1: ({node: _, ...props}) => <h1 className="text-3xl font-bold mt-8 mb-4 text-gray-900 dark:text-gray-100" {...props} />,
+          h2: ({node: _, ...props}) => <h2 className="text-2xl font-bold mt-6 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2 text-gray-800 dark:text-gray-200" {...props} />,
+          h3: ({node: _, ...props}) => <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-800 dark:text-gray-200" {...props} />,
+          p: ({node: _, ...props}) => <p className="leading-7 my-4 text-gray-700 dark:text-gray-300" {...props} />,
+          ul: ({node: _, ...props}) => <ul className="list-disc pl-6 my-4 space-y-2" {...props} />,
+          li: ({node: _, ...props}) => <li className="pl-2 text-gray-700 dark:text-gray-300" {...props} />,
+          strong: ({node: _, ...props}) => <strong className="font-bold text-gray-800 dark:text-gray-200" {...props} />,
+          blockquote: ({node: _, ...props}) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic text-gray-600 dark:text-gray-400" {...props} />,
         }}
       >
         {content}

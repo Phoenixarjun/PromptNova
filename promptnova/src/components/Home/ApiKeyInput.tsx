@@ -37,10 +37,10 @@ export function ApiKeyInput() {
                   .
                 </li>
                 <li>
-                  Click on <strong>"Get API key"</strong>.
+                  Click on <strong>&quot;Get API key&quot;</strong>.
                 </li>
                 <li>
-                  Click on <strong>"Create API key in new project"</strong>.
+                  Click on <strong>&quot;Create API key in new project&quot;</strong>.
                 </li>
                 <li>Copy the generated API key and paste it here.</li>
               </ol>
