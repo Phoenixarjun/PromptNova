@@ -125,6 +125,6 @@ async def update_prompt_endpoint(update_input: UpdatePromptSchema):
         logger.error(f"An unexpected error occurred in /update_prompt: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
-frontend_dir = Path("promptnova/.next")
+frontend_dir = Path("promptnova/out")
 if frontend_dir.exists() and frontend_dir.is_dir():
     app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="static")
