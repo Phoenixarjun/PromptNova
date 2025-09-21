@@ -7,19 +7,18 @@ import guideData from "@/data/guide-details.json";
 
 const allItems = [...guideData.types, ...guideData.frameworks];
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   return allItems
     .filter(item => item && typeof item.slug === "string")
     .map(item => ({ slug: item.slug }));
 }
 
-// Use the new Next.js App Router convention
 interface PageProps {
   params: { slug: string };
 }
 
-export default function DetailPage({ params }: PageProps) {
-  const slug = params.slug;
+const DetailPage = async ({ params }: PageProps) => {
+  const { slug } = await params; // <-- await params
   const item = allItems.find(i => i.slug === slug);
 
   if (!item) notFound();
@@ -41,4 +40,6 @@ export default function DetailPage({ params }: PageProps) {
       <Footer />
     </div>
   );
-}
+};
+
+export default DetailPage;
