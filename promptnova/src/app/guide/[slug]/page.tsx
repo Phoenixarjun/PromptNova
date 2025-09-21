@@ -7,19 +7,20 @@ import guideData from "@/data/guide-details.json";
 
 const allItems = [...guideData.types, ...guideData.frameworks];
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return allItems
-    .filter(item => item && typeof item.slug === "string")
-    .map(item => ({ slug: item.slug }));
+    .filter((item) => item && typeof item.slug === "string")
+    .map((item) => ({ slug: item.slug }));
 }
 
+// PageProps with async params
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
-const DetailPage = async ({ params }: PageProps) => {
-  const { slug } = await params; // <-- await params
-  const item = allItems.find(i => i.slug === slug);
+export default async function DetailPage({ params }: PageProps) {
+  const { slug } = await params; // unwrap the Promise
+  const item = allItems.find((i) => i.slug === slug);
 
   if (!item) notFound();
 
@@ -40,6 +41,4 @@ const DetailPage = async ({ params }: PageProps) => {
       <Footer />
     </div>
   );
-};
-
-export default DetailPage;
+}
