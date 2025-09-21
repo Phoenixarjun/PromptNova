@@ -41,11 +41,8 @@ const MODELS_CONFIG: { [key: string]: { label: string; url: string; models?: { l
         label: "Groq API Key",
         url: "https://console.groq.com/keys",
         models: [
-            { label: "Default (Llama3 8b)", value: "llama3-8b-8192" },
             { label: "Qwen3 32b", value: "qwen/qwen3-32b" },
             { label: "Llama 3.1 8b Instant", value: "llama-3.1-8b-instant" },
-            { label: "Compound", value: "groq/compound" },
-            { label: "Compound Mini", value: "groq/compound-mini" },
             { label: "GPT-OSS 120b", value: "openai/gpt-oss-120b" },
             { label: "GPT-OSS 20b", value: "openai/gpt-oss-20b" },
             { label: "Llama 3.3 70b Versatile", value: "llama-3.3-70b-versatile" },
