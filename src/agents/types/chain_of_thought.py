@@ -1,14 +1,14 @@
 from langchain.prompts import PromptTemplate
 from ..prompt_agent import PromptAgent
-from typing import Optional
+from typing import Optional, Any
 
 class ChainOfThought(PromptAgent):
     """Agent for Chain of Thoughts Prompting style."""
     
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(api_key=api_key)
+    def __init__(self, llm: Any):
+        super().__init__(llm)
     
-    def refine(self, user_input: str, steps: int = None, **kwargs) -> str:
+    def refine(self, user_input: str, steps: Optional[int] = None, **kwargs) -> str:
         """Refines the user input using Chain of Thoughts prompting."""
         cot_template = PromptTemplate(
             input_variables=["user_input", "steps"],

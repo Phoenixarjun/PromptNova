@@ -1,6 +1,6 @@
 from langchain.prompts import PromptTemplate
 from .prompt_agent import PromptAgent
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import json
 import re
 from src.logger import logger
@@ -13,34 +13,72 @@ class RefinedAgentPrompts(BaseModel):
 class RefineAgent(PromptAgent):
     """Agent for refining based on feedback."""
     
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(api_key=api_key)
-        self.structured_llm = self.llm.with_structured_output(RefinedAgentPrompts)
+    def __init__(self, llm: Any):
+        super().__init__(llm)
     
     async def refine(self, user_input: str, **kwargs) -> str:
         """Placeholder refine method to satisfy abstract base class requirement."""
         raise NotImplementedError("RefineAgent is designed for feedback-based refinement via refine_based_on_feedback.")
     
-    def refine_based_on_feedback(self, user_input: str, feedback: Dict, agents: List[str]) -> Dict:
-        """Refines the low-scoring agents based on feedback and returns updated responses."""
+    async def refine_based_on_feedback(self, user_input: str, feedback: Dict, current_prompts: Dict[str, str], agents: List[str]) -> Dict:
+        """Refines the existing prompts based on feedback and returns updated responses."""
         refinement_template = PromptTemplate(
-            input_variables=["user_input", "feedback", "agents"],
-            template="""You are an expert prompt refiner with 25+ years of experience. Based on the provided feedback, refine the prompts for the low-scoring agents ({agents}) for the given user input. Use the feedback's summary key points to address deficiencies and improve alignment with the user's intent. Preserve correct agents (100% score) unchanged. 
-            
-Return a JSON object with a single key "prompts", which is a dictionary with refined prompts for each agent. The format should be: {{"prompts": {{"agent1": "refined prompt1", "agent2": "refined prompt2", ...}}}}.
+            input_variables=["user_input", "current_prompts", "feedback", "agents"],
+            template="""You are an expert prompt refiner. Based on the provided feedback, refine the EXISTING prompts for the specified agents. 
 
-User Input: {user_input}
-Feedback: {feedback}
-Agents to refine: {agents}"""
+**CRITICAL: You MUST preserve the original intent, framework, and sophistication of each prompt while addressing the feedback.**
+
+**Instructions:**
+1.  Analyze the current prompts and the feedback provided.
+2.  For each agent, refine the existing prompt to address the feedback while maintaining its core structure and quality.
+3.  DO NOT oversimplify or dumb down the prompts. Preserve the expert-level quality.
+4.  Return a JSON object with a single key \"prompts\", which is a dictionary where keys are the agent names and values are the refined versions of the original prompts.
+
+**User Input:**
+{user_input}
+
+**Current Prompts to Refine:**
+{current_prompts}
+
+**Feedback to Address:**
+{feedback}
+
+**Agents to refine:**
+{agents}
+
+**Output Format:**
+You MUST respond with a JSON object enclosed in ```json ... ```. Ensure all strings are properly escaped. Example:
+```json
+{{
+  "prompts": {{
+    "react": "[Refined version of the original react prompt]",
+    "one_shot": "[Refined version of the original one_shot prompt]"
+  }}
+}}
+```
+"""
         )
-        chain = refinement_template | self.structured_llm
+        
+        chain = refinement_template | self.llm
         try:
-            response = chain.invoke({"user_input": user_input, "feedback": str(feedback), "agents": ', '.join(agents)})
-            return response.prompts
-        except Exception as e:
+            response = await chain.ainvoke({
+                "user_input": user_input,
+                "current_prompts": json.dumps(current_prompts, indent=2),
+                "feedback": json.dumps(feedback, indent=2),
+                "agents": ', '.join(agents)
+            })
+            
+            json_str = response.content
+            match = re.search(r"```json\n(.*?)\n```", json_str, re.DOTALL)
+            if match:
+                json_str = match.group(1)
+
+            response_data = json.loads(json_str, strict=False)
+            validated_data = RefinedAgentPrompts(**response_data)
+            return validated_data.prompts
+            
+        except (json.JSONDecodeError, Exception) as e:
             logger.error(f"Structured output parsing failed in RefineAgent: {e}", exc_info=True)
-            # Fallback to a DSA-focused prompt based on user input
-            return {
-                agent: f"You are an expert in Data Structures and Algorithms. Provide a clear and concise solution for solving Data Structures and Algorithms (DAS) problems on LeetCode using the {agent} approach, including problem descriptions, optimized Python code, and brief explanations." 
-                for agent in agents
-            }
+            # Fallback: return the original prompts unchanged
+            logger.warning("Refinement failed, returning original prompts as fallback")
+            return {agent: current_prompts.get(agent, "") for agent in agents}

@@ -1,14 +1,14 @@
 from langchain.prompts import PromptTemplate
 from ..prompt_agent import PromptAgent
-from typing import List, Optional
+from typing import List, Optional, Any
 
 class LeastToMost(PromptAgent):
     """Agent for Least-to-Most Prompting style."""
     
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(api_key=api_key)
+    def __init__(self, llm: Any):
+        super().__init__(llm)
     
-    def refine(self, user_input: str, sub_tasks: List[str] = None, **kwargs) -> str:
+    def refine(self, user_input: str, sub_tasks: Optional[List[str]] = None, **kwargs) -> str:
         """Refines the user input using Least-to-Most prompting."""
         sub_tasks = sub_tasks or ["Identify core intent", "Add basic details", "Enhance with advanced instructions"]
         sub_tasks_str = ", ".join(sub_tasks)

@@ -1,5 +1,5 @@
 from langgraph.graph import StateGraph, END
-from typing import TypedDict, Optional, Dict, List
+from typing import TypedDict, Optional, Dict, List, Any
 from src.agents.feedback_analyzer_agent import FeedbackAnalyzerAgent, ReviewSuggestions
 from src.agents.prompt_updater_agent import PromptUpdaterAgent
 from src.agents.update_evaluator import UpdateEvaluator
@@ -19,11 +19,11 @@ class UpdateState(TypedDict):
 
 class UpdatePipeline:
     """A pipeline to update a prompt based on user feedback using a graph-based approach."""
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, llm: Any):
         self.max_iterations = 3
-        self.review_agent = FeedbackAnalyzerAgent(api_key=api_key)
-        self.refiner_agent = PromptUpdaterAgent(api_key=api_key)
-        self.evaluator_agent = UpdateEvaluator(api_key=api_key)
+        self.review_agent = FeedbackAnalyzerAgent(llm=llm)
+        self.refiner_agent = PromptUpdaterAgent(llm=llm)
+        self.evaluator_agent = UpdateEvaluator(llm=llm)
         self.graph = self._build_graph()
 
     def _build_graph(self):

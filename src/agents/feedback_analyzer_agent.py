@@ -1,6 +1,6 @@
 from langchain.prompts import PromptTemplate
 from .prompt_agent import PromptAgent
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 
 class ReviewSuggestions(BaseModel):
@@ -18,8 +18,8 @@ class ReviewSuggestions(BaseModel):
 
 class FeedbackAnalyzerAgent(PromptAgent):
     """Agent that analyzes feedback and generates structured suggestions."""
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(api_key=api_key)
+    def __init__(self, llm: Any):
+        super().__init__(llm)
         self.structured_llm = self.llm.with_structured_output(ReviewSuggestions)
 
     def analyze(

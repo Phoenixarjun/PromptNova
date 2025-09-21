@@ -1,12 +1,12 @@
 from langchain.prompts import PromptTemplate
 from ..prompt_agent import PromptAgent
-from typing import Optional
+from typing import Any
 
 class AutomaticPromptEngineering(PromptAgent):
     """Agent for Automatic Prompt Engineering (APE) style."""
     
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(api_key=api_key)
+    def __init__(self, llm: Any):
+        super().__init__(llm)
     
     def refine(self, user_input: str, optimization_goal: str = "clarity", **kwargs) -> str:
         """Refines the user input using Automatic Prompt Engineering prompting."""

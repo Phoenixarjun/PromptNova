@@ -1,14 +1,14 @@
 from langchain.prompts import PromptTemplate
 from ..prompt_agent import PromptAgent
-from typing import List, Optional
+from typing import List, Optional, Any
 
 class FewShot(PromptAgent):
     """Agent for Few-Shot Prompting style."""
     
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(api_key=api_key)
+    def __init__(self, llm: Any):
+        super().__init__(llm)
     
-    def refine(self, user_input: str, examples: List[dict] = None, **kwargs) -> str:
+    def refine(self, user_input: str, examples: Optional[List[dict]] = None, **kwargs) -> str:
         """Refines the user input using Few-Shot prompting."""
         examples = examples or [{"input": "Tell me about dogs.", "output": "Provide a detailed overview of dog breeds, including history, care tips, and common behaviors, structured in sections for readability."}]
         examples_str = "\n".join([f"Example Input: {ex['input']}\nExample Output: {ex['output']}" for ex in examples])

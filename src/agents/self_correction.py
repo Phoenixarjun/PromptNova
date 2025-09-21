@@ -1,6 +1,6 @@
 from langchain.prompts import PromptTemplate
 from .prompt_agent import PromptAgent
-from typing import List, Dict, Optional, Literal
+from typing import List, Dict, Optional, Literal, Any
 import json
 import re
 from src.logger import logger
@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, conint
 
 class AgentGuidance(BaseModel):
     key_points: List[str] = Field(description="List of issues found in the prompt.")
-    guidance: Dict[str, str] = Field(description="Improvement suggestions for each agent.")
+    guidance: str = Field(description="A single string of improvement suggestions.")
 
 class SelfCorrectionResult(BaseModel):
     status: Literal["yes", "no"]
@@ -18,9 +18,8 @@ class SelfCorrectionResult(BaseModel):
 class SelfCorrection(PromptAgent):
     """Agent for self-correction evaluation."""
     
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(api_key=api_key)
-        self.structured_llm = self.llm.with_structured_output(SelfCorrectionResult)
+    def __init__(self, llm: Any):
+        super().__init__(llm)
     
     async def refine(self, user_input: str, **kwargs) -> str:
         """Placeholder refine method to satisfy abstract base class requirement."""
@@ -30,26 +29,59 @@ class SelfCorrection(PromptAgent):
         """Evaluates the refined prompt against the original user prompt."""
         evaluation_template = PromptTemplate(
             input_variables=["prompt", "user_prompt", "agents"],
-            template="""You are an expert prompt evaluator with 25+ years of experience. Evaluate the following refined prompt to determine if it fully meets the intent and requirements expressed in the original user prompt. For each agent ({agents}), assign a percentage score (0-100%) indicating how well the refined prompt aligns with the user's intent using that agent's style. 
-            
-If all scores are 100%, set status to "yes". 
-Otherwise, set status to "no" and provide a score for each agent in the 'agents' field. Also provide a 'summary' with 'key_points' (a list of issues) and 'guidance' (a dictionary of improvement suggestions for each agent).
+            template="""You are an expert prompt evaluator. Evaluate the refined prompt based on the user's original prompt.
 
-Refined Prompt: {prompt}
-User Prompt: {user_prompt}
-Agents: {agents}"""
+**Instructions:**
+1.  For each agent in {agents}, provide a percentage score (0-100) representing how well the refined prompt aligns with the user's intent.
+2.  If all scores are 100, set status to "yes".
+3.  Otherwise, set status to "no" and provide a summary including:
+    - `key_points`: A list of the main issues.
+    - `guidance`: A single string of actionable advice to fix the issues.
+
+**Refined Prompt:**
+{prompt}
+
+**User Prompt:**
+{user_prompt}
+
+**Agents to Score:**
+{agents}
+
+**Output Format:**
+You MUST respond with a JSON object enclosed in ```json ... ```. Ensure all strings are properly escaped. Example for a 'no' status:
+```json
+{{
+  "status": "no",
+  "agents": {{
+    "one_shot": 80,
+    "tot": 75
+  }},
+  "summary": {{
+    "key_points": ["The prompt is too complex for a beginner.", "It assumes prior knowledge of advanced topics."],
+    "guidance": "Simplify the prompt to focus on foundational concepts. Remove jargon and start with a basic 'Hello, World!' example to make it more accessible for beginners."
+  }}
+}}
+```
+"""
         )
-        chain = evaluation_template | self.structured_llm
+        chain = evaluation_template | self.llm
         try:
             response = chain.invoke({"prompt": prompt, "user_prompt": user_prompt, "agents": ', '.join(agents)})
-            return response.dict()
-        except Exception as e:
+            json_str = response.content
+            match = re.search(r"```json\n(.*?)\n```", json_str, re.DOTALL)
+            if match:
+                json_str = match.group(1)
+            
+            response_data = json.loads(json_str, strict=False)
+            validated_data = SelfCorrectionResult(**response_data)
+            return validated_data.dict()
+        except (json.JSONDecodeError, Exception) as e:
             logger.error(f"Structured output parsing failed in SelfCorrection: {e}", exc_info=True)
             return {
                 "status": "no",
-                "agents": {agent: 50 for agent in agents}, 
+                "agents": {agent: 50 for agent in agents},
                 "summary": {
-                    "key_points": ["LLM failed to produce valid JSON. Using default scores and recommending simpler prompt structure."],
-                    "guidance": {agent: f"Simplify prompt for {agent} to focus on direct alignment with user intent." for agent in agents}
+                    "key_points": ["LLM failed to produce valid JSON. Using default scores."],
+                    "guidance": "Simplify the prompt to focus on direct alignment with user intent."
                 }
             }

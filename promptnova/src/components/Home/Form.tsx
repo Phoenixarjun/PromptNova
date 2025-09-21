@@ -1,9 +1,19 @@
-"use client"
+'use client'
 import React, { useState, useEffect } from 'react';
 import { Info, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import CryptoJS from 'crypto-js';
 import { RefineForm } from './RefineForm';
 import { AdvancedOptions } from './AdvancedOptions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Example {
   id: number;
@@ -167,6 +177,8 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const [parsedPrompt, setParsedPrompt] = useState('');
   const [mode, setMode] = useState<'normal' | 'expert'>('normal');
   const [advancedParams, setAdvancedParams] = useState<any>({ types: {}, framework: {} });
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorDialogContent, setErrorDialogContent] = useState({ message: '', rawResponse: '' });
 
   const visibleTypes = showAllTypes ? types : types.slice(0, 6);
   const visibleFrameworks = showAllFrameworks ? frameworks : frameworks.slice(0, 6);
@@ -358,7 +370,22 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
       const data = await response.json();
       if (data.output_str) {
-        setResult(data.output_str);
+        try {
+          const parsedOutput = JSON.parse(data.output_str);
+          if (parsedOutput.error === 'parsing_failed') {
+            setErrorDialogContent({
+              message: parsedOutput.message,
+              rawResponse: parsedOutput.raw_response,
+            });
+            setShowErrorDialog(true);
+            setResult(parsedOutput.raw_response); // Show raw response in the background
+          } else {
+            setResult(data.output_str);
+          }
+        } catch (e) {
+          // Not a JSON string, so it's a valid raw response
+          setResult(data.output_str);
+        }
       } else {
         setError("Received an unexpected response format from the server.");
         console.error("Unexpected response:", data);
@@ -411,6 +438,29 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
   return (
     <div className="p-8 bg-gray-50 dark:bg-gray-900/50 rounded-lg shadow-md max-w-3xl mx-auto my-8 border border-gray-200 dark:border-gray-800">
+      <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Parsing Error</AlertDialogTitle>
+            <AlertDialogDescription>
+              {errorDialogContent.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-md max-h-60 overflow-y-auto">
+            <pre className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+              <code>{errorDialogContent.rawResponse}</code>
+            </pre>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setPromptText(errorDialogContent.rawResponse);
+              setShowErrorDialog(false);
+            }}>Use Raw Text</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {isReauthenticating && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={() => setIsReauthenticating(false)}>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 max-w-xl w-full" onClick={e => e.stopPropagation()}>
@@ -692,4 +742,3 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     </div>
   )
 }
-

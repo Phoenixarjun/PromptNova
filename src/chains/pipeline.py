@@ -1,5 +1,5 @@
 from langgraph.graph import StateGraph, END
-from typing import TypedDict, Dict, List, Optional
+from typing import TypedDict, Dict, List, Optional, Any
 from src.models.prompt_schema import PromptSchema
 from src.agents.types.zero_shot import ZeroShot
 from src.agents.types.one_shot import OneShot
@@ -67,6 +67,7 @@ import asyncio
 
 class PromptState(TypedDict):
     prompt_input: PromptSchema
+    framework_output: str
     type_prompts: Dict[str, str]
     evaluation: Dict
     refined_prompts: Dict[str, str]
@@ -74,80 +75,93 @@ class PromptState(TypedDict):
     iteration: int
 
 class PromptPipeline:
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, llm: Any):
         self.max_iterations = 3
         self.score_threshold = 90
         self.agents = {
-            "zero_shot": ZeroShot(api_key=api_key),
-            "one_shot": OneShot(api_key=api_key),
-            "cot": ChainOfThought(api_key=api_key),
-            "tot": TreeOfThought(api_key=api_key),
-            "react": ReAct(api_key=api_key),
-            "in_context": InContext(api_key=api_key),
-            "emotion": Emotion(api_key=api_key),
-            "role": Role(api_key=api_key),
-            "few_shot": FewShot(api_key=api_key),
-            "self_consistency": SelfConsistency(api_key=api_key),
-            "meta_prompting": MetaPrompting(api_key=api_key),
-            "least_to_most": LeastToMost(api_key=api_key),
-            "multi_task": MultiTask(api_key=api_key),
-            "task_decomposition": TaskDecomposition(api_key=api_key),
-            "constrained": Constrained(api_key=api_key),
-            "generated_knowledge": GeneratedKnowledge(api_key=api_key),
-            "automatic_prompt_engineering": AutomaticPromptEngineering(api_key=api_key),
-            "directional_stimulus": DirectionalStimulus(api_key=api_key),
-            "chain_of_verification": ChainOfVerification(api_key=api_key),
-            "skeleton_of_thought": SkeletonOfThought(api_key=api_key),
-            "graph_of_thoughts": GraphOfThoughts(api_key=api_key),
-            "plan_and_solve": PlanAndSolve(api_key=api_key),
-            "maieutic_prompting": MaieuticPrompting(api_key=api_key),
-            "reflexion_type": ReflexionType(api_key=api_key),
-            "chain_of_density": ChainOfDensity(api_key=api_key),
-            "active_prompt": ActivePrompt(api_key=api_key),
-            "retrieval_augmented_prompting": RetrievalAugmentedPrompting(api_key=api_key),
-            "multi_agent_debate": MultiAgentDebate(api_key=api_key),
-            "persona_switching": PersonaSwitching(api_key=api_key),
-            "scaffolded_prompting": ScaffoldedPrompting(api_key=api_key),
-            "deliberation_prompting": DeliberationPrompting(api_key=api_key),
-            "context_expansion": ContextExpansion(api_key=api_key),
-            "goal_oriented_prompting": GoalOrientedPrompting(api_key=api_key),
-            "co_star": CoStar(api_key=api_key),
-            "tcef": Tcef(api_key=api_key),
-            "crispe": Crispe(api_key=api_key),
-            "rtf": Rtf(api_key=api_key),
-            "ice": Ice(api_key=api_key),
-            "craft": Craft(api_key=api_key),
-            "ape": Ape(api_key=api_key),
-            "pecra": Pecra(api_key=api_key),
-            "oscar": Oscar(api_key=api_key),
-            "rasce": Rasce(api_key=api_key),
-            "reflection": Reflection(api_key=api_key),
-            "flipped_interaction": FlippedInteraction(api_key=api_key),
-            "bab": Bab(api_key=api_key),
-            "prompt": PromptFramework(api_key=api_key),
-            "soap": Soap(api_key=api_key),
-            "clear": Clear(api_key=api_key),
-            "prism": Prism(api_key=api_key),
-            "grips": Grips(api_key=api_key),
-            "app": AppFramework(api_key=api_key),
-            "scope": Scope(api_key=api_key),
-            "tool_oriented_prompting": ToolOrientedPrompting(api_key=api_key),
-            "neuro_symbolic_prompting": NeuroSymbolicPrompting(api_key=api_key),
-            "dynamic_context_windows": DynamicContextWindows(api_key=api_key),
-            "meta_cognitive_prompting": MetaCognitivePrompting(api_key=api_key),
-            "prompt_ensembles": PromptEnsembles(api_key=api_key)
+            "zero_shot": ZeroShot(llm=llm),
+            "one_shot": OneShot(llm=llm),
+            "cot": ChainOfThought(llm=llm),
+            "tot": TreeOfThought(llm=llm),
+            "react": ReAct(llm=llm),
+            "in_context": InContext(llm=llm),
+            "emotion": Emotion(llm=llm),
+            "role": Role(llm=llm),
+            "few_shot": FewShot(llm=llm),
+            "self_consistency": SelfConsistency(llm=llm),
+            "meta_prompting": MetaPrompting(llm=llm),
+            "least_to_most": LeastToMost(llm=llm),
+            "multi_task": MultiTask(llm=llm),
+            "task_decomposition": TaskDecomposition(llm=llm),
+            "constrained": Constrained(llm=llm),
+            "generated_knowledge": GeneratedKnowledge(llm=llm),
+            "automatic_prompt_engineering": AutomaticPromptEngineering(llm=llm),
+            "directional_stimulus": DirectionalStimulus(llm=llm),
+            "chain_of_verification": ChainOfVerification(llm=llm),
+            "skeleton_of_thought": SkeletonOfThought(llm=llm),
+            "graph_of_thoughts": GraphOfThoughts(llm=llm),
+            "plan_and_solve": PlanAndSolve(llm=llm),
+            "maieutic_prompting": MaieuticPrompting(llm=llm),
+            "reflexion_type": ReflexionType(llm=llm),
+            "chain_of_density": ChainOfDensity(llm=llm),
+            "active_prompt": ActivePrompt(llm=llm),
+            "retrieval_augmented_prompting": RetrievalAugmentedPrompting(llm=llm),
+            "multi_agent_debate": MultiAgentDebate(llm=llm),
+            "persona_switching": PersonaSwitching(llm=llm),
+            "scaffolded_prompting": ScaffoldedPrompting(llm=llm),
+            "deliberation_prompting": DeliberationPrompting(llm=llm),
+            "context_expansion": ContextExpansion(llm=llm),
+            "goal_oriented_prompting": GoalOrientedPrompting(llm=llm),
+            "co_star": CoStar(llm=llm),
+            "tcef": Tcef(llm=llm),
+            "crispe": Crispe(llm=llm),
+            "rtf": Rtf(llm=llm),
+            "ice": Ice(llm=llm),
+            "craft": Craft(llm=llm),
+            "ape": Ape(llm=llm),
+            "pecra": Pecra(llm=llm),
+            "oscar": Oscar(llm=llm),
+            "rasce": Rasce(llm=llm),
+            "reflection": Reflection(llm=llm),
+            "flipped_interaction": FlippedInteraction(llm=llm),
+            "bab": Bab(llm=llm),
+            "prompt": PromptFramework(llm=llm),
+            "soap": Soap(llm=llm),
+            "clear": Clear(llm=llm),
+            "prism": Prism(llm=llm),
+            "grips": Grips(llm=llm),
+            "app": AppFramework(llm=llm),
+            "scope": Scope(llm=llm),
+            "tool_oriented_prompting": ToolOrientedPrompting(llm=llm),
+            "neuro_symbolic_prompting": NeuroSymbolicPrompting(llm=llm),
+            "dynamic_context_windows": DynamicContextWindows(llm=llm),
+            "meta_cognitive_prompting": MetaCognitivePrompting(llm=llm),
+            "prompt_ensembles": PromptEnsembles(llm=llm)
         }
-        self.self_correction = SelfCorrection(api_key=api_key)
-        self.refine_agent = RefineAgent(api_key=api_key)
-        self.final_prompt = FinalPrompt(api_key=api_key)
+        self.self_correction = SelfCorrection(llm=llm)
+        self.refine_agent = RefineAgent(llm=llm)
+        self.final_prompt = FinalPrompt(llm=llm)
         self.graph = self._build_graph()
 
     def _build_graph(self):
         workflow = StateGraph(PromptState)
 
+        async def framework_node(state: PromptState) -> PromptState:
+            framework = state["prompt_input"].framework
+            if framework in self.agents:
+                framework_output = await asyncio.to_thread(
+                    self.agents[framework].refine, state["prompt_input"].user_input
+                )
+                logger.info(f"Framework '{framework}' output: {framework_output}")
+                return {"framework_output": framework_output}
+            else:
+                logger.warning(f"Framework '{framework}' not found, using user input directly.")
+                return {"framework_output": state["prompt_input"].user_input}
+
         async def type_refine_node(state: PromptState) -> PromptState:
+            input_for_types = state["framework_output"]
             tasks = [
-                asyncio.to_thread(self.agents[style].refine, state["prompt_input"].user_input)
+                asyncio.to_thread(self.agents[style].refine, input_for_types)
                 for style in state["prompt_input"].style
             ]
             results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -156,40 +170,42 @@ class PromptPipeline:
                 for style, result in zip(state["prompt_input"].style, results)
             }
             logger.info(f"Type prompts generated: {type_prompts}")
-            return {"type_prompts": type_prompts}
+            return {"type_prompts": type_prompts, "refined_prompts": {}} # Clear refined prompts
 
         async def evaluate_node(state: PromptState) -> PromptState:
-            combined_prompt = "\n".join(state["type_prompts"].values())
+            prompts_to_evaluate = state["refined_prompts"] if state["refined_prompts"] else state["type_prompts"]
+            combined_prompt = "\n".join(prompts_to_evaluate.values())
             evaluation = await asyncio.to_thread(
                 self.self_correction.evaluate,
                 combined_prompt,
                 state["prompt_input"].user_input,
-                state["prompt_input"].style,
+                list(prompts_to_evaluate.keys()),
             )
             logger.info(f"Evaluation result: {evaluation}")
             return {"evaluation": evaluation, "iteration": state["iteration"] + 1}
 
         async def refine_node(state: PromptState) -> PromptState:
             if state["evaluation"]["status"] == "yes":
-                return state
+                return {"refined_prompts": state["refined_prompts"] or state["type_prompts"]}
             logger.info(f"Passing evaluation to RefineAgent: {state['evaluation']}")
-            refined_prompts = await asyncio.to_thread(
-                self.refine_agent.refine_based_on_feedback,
+            refined_prompts = await self.refine_agent.refine_based_on_feedback(
                 state["prompt_input"].user_input,
                 state["evaluation"],
-                state["prompt_input"].style,
+                state["type_prompts"],  # Pass the actual prompts
+                list(state["type_prompts"].keys()),
             )
             logger.info(f"Refined prompts: {refined_prompts}")
             return {"refined_prompts": refined_prompts}
 
         async def integrate_node(state: PromptState) -> PromptState:
             prompts = state["refined_prompts"] if state["refined_prompts"] and all(state["refined_prompts"].values()) else state["type_prompts"]
-            logger.info(f"Passing prompts to FinalPrompt.integrate: {prompts}")
+            all_prompts = {state["prompt_input"].framework: state["framework_output"], **prompts}
+            logger.info(f"Passing prompts to FinalPrompt.integrate: {all_prompts}")
             output_str = await self.final_prompt.integrate(
-                prompts,
-                state["type_prompts"],
-                state["prompt_input"].user_input,
-                state["prompt_input"].framework
+                refined_responses=all_prompts,
+                type_prompts=state["type_prompts"],
+                user_input=state["prompt_input"].user_input,
+                framework=state["prompt_input"].framework
             )
             logger.info(f"Final output: {output_str}")
             return {"output_str": output_str}
@@ -201,12 +217,14 @@ class PromptPipeline:
                 return "integrate"
             return "refine"
 
+        workflow.add_node("framework", framework_node)
         workflow.add_node("type_refine", type_refine_node)
         workflow.add_node("evaluate", evaluate_node)
         workflow.add_node("refine", refine_node)
         workflow.add_node("integrate", integrate_node)
 
-        workflow.set_entry_point("type_refine")
+        workflow.set_entry_point("framework")
+        workflow.add_edge("framework", "type_refine")
         workflow.add_edge("type_refine", "evaluate")
         workflow.add_conditional_edges("evaluate", should_continue, {
             "refine": "refine",
@@ -219,13 +237,15 @@ class PromptPipeline:
 
     async def run(self, prompt_input: PromptSchema) -> PromptSchema:
         logger.info(f"Running pipeline for input: {prompt_input.user_input[:50]}... with styles: {prompt_input.style}, framework: {prompt_input.framework}")
-        state = await self.graph.ainvoke({
+        initial_state = {
             "prompt_input": prompt_input,
+            "framework_output": "",
             "type_prompts": {},
             "evaluation": {},
             "refined_prompts": {},
             "output_str": "",
             "iteration": 0
-        })
+        }
+        state = await self.graph.ainvoke(initial_state)
         prompt_input.output_str = state["output_str"]
         return prompt_input

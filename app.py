@@ -1,18 +1,19 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException
 from src.models.prompt_schema import PromptSchema, UpdatePromptSchema
 from src.chains.pipeline import PromptPipeline
 from src.chains.update_pipeline import UpdatePipeline
-from src.config import GOOGLE_API_KEY
+from src.config import GOOGLE_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY
 from Crypto.Cipher import AES
 from Crypto.Hash import MD5
 from Crypto.Util.Padding import unpad
 import base64
 from src.logger import logger
 from fastapi.middleware.cors import CORSMiddleware
-import asyncio 
+import asyncio
 
-
-
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
+from langchain_mistralai import ChatMistralAI
 
 app = FastAPI(title="PromptNova API", description="API for refining prompts using multiple styles and a framework.")
 
@@ -29,24 +30,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def decrypt_cryptojs_aes(encrypted_str: str, password: str) -> str:
-    """Decrypts a string encrypted with CryptoJS.AES.encrypt(message, password)."""
     try:
         encrypted_data = base64.b64decode(encrypted_str)
-        # CryptoJS format: "Salted__" (8 bytes) + salt (8 bytes) + ciphertext
         if encrypted_data[:8] != b'Salted__':
             raise ValueError("Invalid encrypted data: missing salt prefix.")
-        
+
         salt = encrypted_data[8:16]
         ciphertext = encrypted_data[16:]
-        
-        # EVP_BytesToKey logic to derive key and IV from password and salt.
-        # CryptoJS uses MD5 by default. It concatenates hashes until key+iv length is met.
+
         key_iv = b''
         temp = b''
         password_bytes = password.encode('utf-8')
-        
-        while len(key_iv) < 48: # 32 bytes for key (AES-256) + 16 bytes for IV
+
+        while len(key_iv) < 48:
             md5 = MD5.new()
             if temp:
                 md5.update(temp)
@@ -54,10 +52,10 @@ def decrypt_cryptojs_aes(encrypted_str: str, password: str) -> str:
             md5.update(salt)
             temp = md5.digest()
             key_iv += temp
-            
+
         key = key_iv[:32]
         iv = key_iv[32:48]
-        
+
         cipher = AES.new(key, AES.MODE_CBC, iv)
         decrypted_padded = cipher.decrypt(ciphertext)
         decrypted = unpad(decrypted_padded, AES.block_size).decode('utf-8')
@@ -66,68 +64,53 @@ def decrypt_cryptojs_aes(encrypted_str: str, password: str) -> str:
         logger.error(f"CryptoJS AES decryption failed: {e}")
         raise ValueError("Decryption failed. Invalid API key or password.")
 
+
+def get_llm(prompt_input):
+    decrypted_api_key = None
+    if prompt_input.api_key:
+        if not prompt_input.password:
+            raise HTTPException(status_code=400, detail="API key is present, but no password was provided.")
+        try:
+            decrypted_api_key = decrypt_cryptojs_aes(prompt_input.api_key, prompt_input.password)
+        except (ValueError, IndexError, TypeError) as e:
+            raise HTTPException(status_code=400, detail="Invalid API key or password.")
+
+    model_provider = prompt_input.selected_model or 'gemini' # Default to gemini if not provided
+
+    if model_provider == 'gemini':
+        api_key = decrypted_api_key or GOOGLE_API_KEY
+        return ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key=api_key, temperature=0.7)
+
+    elif model_provider == 'groq':
+        api_key = decrypted_api_key or GROQ_API_KEY
+        model_name = prompt_input.selected_groq_model
+        return ChatGroq(model_name=model_name, api_key=api_key, temperature=0.7)
+
+    elif model_provider == 'mistral':
+        api_key = decrypted_api_key or MISTRAL_API_KEY
+        return ChatMistralAI(model="mistral-large-latest", api_key=api_key, temperature=0.7)
+
+    else:
+        raise HTTPException(status_code=400, detail=f"Invalid model provider selected: {model_provider}")
+
+
 @app.post("/refine", response_model=PromptSchema)
 async def refine_prompt(prompt_input: PromptSchema):
-    
-    """Refines a user prompt using selected styles and framework."""
     try:
-        # print(f"Received api_key: {prompt_input.api_key}")
-        # print(f"Received password: {prompt_input.password}")
-        logger.info(f"Received request: user_input={prompt_input.user_input}..., styles={prompt_input.style}, framework={prompt_input.framework}")
-        decrypted_api_key = None
-        if prompt_input.api_key:
-            if not prompt_input.password:
-                raise HTTPException(status_code=400, detail="API key is present, but no password was provided.")
-            try:
-                # Decrypt the API key using the password provided from the cookie.
-                # This logic is compatible with CryptoJS.AES.encrypt used on the frontend.
-                decrypted_api_key = decrypt_cryptojs_aes(prompt_input.api_key, prompt_input.password)
-                # print(f"Decrypted API Key: {decrypted_api_key}")
-                logger.info("Successfully decrypted and using user-provided API key.")
-            except (ValueError, IndexError, TypeError) as e:
-                logger.error(f"Failed to decrypt API key: {e}")
-                raise HTTPException(status_code=400, detail="Invalid API key or password.")
-        
-        final_api_key = decrypted_api_key or GOOGLE_API_KEY
-        if not final_api_key:
-            logger.error("API key not found in request or environment.")
-            raise HTTPException(status_code=401, detail="API key not found. Please provide it in the settings or set GOOGLE_API_KEY in your environment.")
-
-        pipeline = PromptPipeline(api_key=final_api_key)
-        # Create a new PromptSchema instance for the pipeline, excluding auth fields.
-        pipeline_input_data = prompt_input.model_dump(exclude={'api_key', 'password', 'output_str'})
-        pipeline_prompt = PromptSchema(**pipeline_input_data)
-        result = await pipeline.run(pipeline_prompt)
-        logger.info(f"Refined prompt: {result.output_str}...")
+        llm = get_llm(prompt_input)
+        pipeline = PromptPipeline(llm=llm)
+        result = await pipeline.run(prompt_input)
         return result
     except Exception as e:
-        logger.error(f"Error refining prompt: {str(e)}")
+        logger.error(f"Error refining prompt: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error refining prompt: {str(e)}")
+
 
 @app.post("/update_prompt")
 async def update_prompt_endpoint(update_input: UpdatePromptSchema):
-    """
-    Receives a prompt, user feedback, and refines the prompt based on it.
-    """
-    logger.info(f"Received request for /update_prompt for prompt: {update_input.original_prompt[:50]}...")
     try:
-        decrypted_api_key = None
-        if update_input.api_key:
-            if not update_input.password:
-                raise HTTPException(status_code=400, detail="API key is present, but no password was provided for update. Your session may have expired.")
-            try:
-                decrypted_api_key = decrypt_cryptojs_aes(update_input.api_key, update_input.password)
-                logger.info("Successfully decrypted and using user-provided API key for update.")
-            except (ValueError, IndexError, TypeError) as e:
-                logger.error(f"Failed to decrypt API key for update: {e}")
-                raise HTTPException(status_code=400, detail="Invalid API key or password for update.")
-
-        final_api_key = decrypted_api_key or GOOGLE_API_KEY
-        if not final_api_key:
-            logger.error("API key not found in request or environment for update.")
-            raise HTTPException(status_code=401, detail="API key not found. Please provide it in the settings or set GOOGLE_API_KEY in your environment.")
-
-        pipeline = UpdatePipeline(api_key=final_api_key)
+        llm = get_llm(update_input)
+        pipeline = UpdatePipeline(llm=llm)
         updated_prompt = await pipeline.run(
             original_prompt=update_input.original_prompt,
             final_prompt=update_input.final_prompt,

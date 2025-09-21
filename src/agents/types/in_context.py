@@ -1,14 +1,14 @@
 from langchain.prompts import PromptTemplate
 from ..prompt_agent import PromptAgent
-from typing import Optional
+from typing import Optional, Any
 
 class InContext(PromptAgent):
     """Agent for In-Context Learning Prompting style."""
     
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(api_key=api_key)
+    def __init__(self, llm: Any):
+        super().__init__(llm)
     
-    def refine(self, user_input: str, context: str = None, **kwargs) -> str:
+    def refine(self, user_input: str, context: Optional[str] = None, **kwargs) -> str:
         """Refines the user input using In-Context Learning prompting."""
         in_context_template = PromptTemplate(
             input_variables=["user_input", "context"],

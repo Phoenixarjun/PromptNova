@@ -1,6 +1,6 @@
 from langchain.prompts import PromptTemplate
 from .prompt_agent import PromptAgent
-from typing import Dict, Optional, List, Literal
+from typing import Dict, Optional, List, Literal, Any
 from src.logger import logger
 from pydantic import BaseModel, Field
 
@@ -21,8 +21,8 @@ class EvaluationResult(BaseModel):
 class UpdateEvaluator(PromptAgent):
     """Top-tier agent for rigorously evaluating an updated prompt."""
 
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(api_key=api_key)
+    def __init__(self, llm: Any):
+        super().__init__(llm)
         self.structured_llm = self.llm.with_structured_output(EvaluationResult)
 
     async def refine(self, user_input: str, **kwargs) -> str:

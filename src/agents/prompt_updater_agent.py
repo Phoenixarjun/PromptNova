@@ -1,11 +1,11 @@
 from langchain.prompts import PromptTemplate
 from .prompt_agent import PromptAgent
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 
 class PromptUpdaterAgent(PromptAgent):
     """Agent that updates a prompt based on structured suggestions with strict constraints."""
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(api_key=api_key)
+    def __init__(self, llm: Any):
+        super().__init__(llm)
 
     def update(
         self,

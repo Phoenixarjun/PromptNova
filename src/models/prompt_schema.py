@@ -24,6 +24,8 @@ class PromptSchema(BaseModel):
     api_key: Optional[str] = Field(None, description="User's API key for the LLM.")
     password: Optional[str] = Field(None, description="Password to decrypt the user's API key.")
     examples: Optional[List[Dict[str, str]]] = Field([], description="List of example input-output pairs.")
+    selected_model: Literal["gemini", "mistral", "groq"] = Field(..., description="The selected model provider.")
+    selected_groq_model: Optional[str] = Field(None, description="The selected Groq model, if applicable.")
 
     class Config:
         json_encoders = {
@@ -39,3 +41,5 @@ class UpdatePromptSchema(BaseModel):
     framework: Optional[str] = Field(None, description="The single prompt refinement framework to apply.")
     api_key: Optional[str] = Field(None, description="User's encrypted API key for the LLM.")
     password: Optional[str] = Field(None, description="Password to decrypt the user's API key.")
+    selected_model: Optional[Literal["gemini", "mistral", "groq"]] = Field('gemini', description="The selected model provider.")
+    selected_groq_model: Optional[str] = Field(None, description="The selected Groq model, if applicable.")
