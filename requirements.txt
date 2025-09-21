@@ -7,6 +7,7 @@ langgraph
 langchain-core
 langchain-google-genai
 google-generativeai
+langchain_mistralai
 google_genai
 python-dotenv
 pycryptodome
