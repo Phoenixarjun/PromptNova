@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { motion } from 'framer-motion'; // Assuming framer-motion is installed or similar animation library
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
@@ -37,33 +38,47 @@ const GuidePage = () => {
             </TabsList>
             <TabsContent value="types">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-                {types.map((type) => (
-                  <Link key={type.name} href={`/guide/${type.slug}`} className="block group">
-                    <Card className="bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 group-hover:border-blue-500 dark:group-hover:border-blue-400 group-hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col">
-                      <CardHeader>
-                        <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{type.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-                        <p className="text-gray-600 dark:text-gray-400 text-sm">{type.short_description}</p>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                {types.map((type, index) => (
+                  <motion.div
+                    key={type.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    <Link href={`/guide/${type.slug}`} className="block group">
+                      <Card className="bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 group-hover:border-blue-500 dark:group-hover:border-blue-400 group-hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col">
+                        <CardHeader>
+                          <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{type.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex-grow">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">{type.short_description}</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
                 ))}
               </div>
             </TabsContent>
             <TabsContent value="frameworks">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-                {frameworks.map((framework) => (
-                  <Link key={framework.name} href={`/guide/${framework.slug}`} className="block group">
-                    <Card className="bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 group-hover:border-blue-500 dark:group-hover:border-blue-400 group-hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col">
-                      <CardHeader>
-                        <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{framework.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-                        <p className="text-gray-600 dark:text-gray-400 text-sm">{framework.short_description}</p>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                {frameworks.map((framework, index) => (
+                  <motion.div
+                    key={framework.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    <Link href={`/guide/${framework.slug}`} className="block group">
+                      <Card className="bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 group-hover:border-blue-500 dark:group-hover:border-blue-400 group-hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col">
+                        <CardHeader>
+                          <CardTitle className="text-xl text-gray-900 dark:text-gray-100">{framework.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex-grow">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">{framework.short_description}</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
                 ))}
               </div>
             </TabsContent>
