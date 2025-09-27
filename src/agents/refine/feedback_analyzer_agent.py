@@ -48,7 +48,7 @@ class FeedbackAnalyzerAgent(PromptAgent):
 
 **Instructions:**
 1.  **Identify Deficiencies:** List specific weaknesses in the 'Final Prompt' according to the feedback.
-2.  **Suggest Adjustments:** Provide actionable recommendations to fix the deficiencies.
+2.  **Suggest Adjustments:** Must Provide actionable recommendations to fix the deficiencies.
 3.  **Offer Phrasing (Optional):** Suggest alternative phrasing.
 
 Your output must be a JSON object.'''

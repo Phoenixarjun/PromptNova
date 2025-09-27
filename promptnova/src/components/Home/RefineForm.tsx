@@ -1,4 +1,4 @@
-"use client"
+'use client'
 import React, { useState } from 'react';
 import { RefreshCw, Eye, EyeOff } from 'lucide-react';
 import CryptoJS from 'crypto-js';
@@ -12,6 +12,29 @@ interface RefineFormProps {
   framework: string | null;
   selectedModel: string;
   selectedGroqModel: string;
+  promptMode: 'task' | 'project';
+}
+
+interface ProjectUpdatePayload {
+    original_user_prompt: string;
+    project_artifacts: Record<string, unknown>;
+    user_feedback: string;
+    api_key: string | null;
+    password: string | null;
+    selected_model: string;
+    selected_groq_model: string;
+}
+
+interface TaskUpdatePayload {
+    original_prompt: string;
+    final_prompt: string;
+    user_feedback: string;
+    api_key: string | null;
+    password: string | null;
+    style: string[];
+    framework: string | null;
+    selected_model: string;
+    selected_groq_model: string;
 }
 
 const getCookie = (name: string): string | null => {
@@ -21,7 +44,17 @@ const getCookie = (name: string): string | null => {
   return null;
 };
 
-export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPrompt, onClose, onRefined, style, framework, selectedModel, selectedGroqModel }) => {
+export const RefineForm: React.FC<RefineFormProps> = ({ 
+    originalPrompt, 
+    finalPrompt, 
+    onClose, 
+    onRefined, 
+    style, 
+    framework, 
+    selectedModel, 
+    selectedGroqModel,
+    promptMode
+}) => {
   const [feedback, setFeedback] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -30,7 +63,7 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
   const [showPassword, setShowPassword] = useState(false);
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRefine = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!feedback.trim()) {
       setError('Please provide some feedback to refine the prompt.');
@@ -51,22 +84,44 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
     setIsLoading(true);
     setError('');
 
-    const payload = {
-      original_prompt: originalPrompt,
-      final_prompt: finalPrompt,
-      user_feedback: feedback,
-      api_key: encryptedApiKey,
-      password: password,
-      style: style,
-      framework: framework,
-      selected_model: selectedModel,
-      selected_groq_model: selectedGroqModel,
-    };
+    let endpoint = '';
+    let payload: ProjectUpdatePayload | TaskUpdatePayload;
+
+
+    if (promptMode === 'project') {
+        endpoint = 'http://127.0.0.1:8000/project_update';
+        try {
+            payload = {
+                original_user_prompt: originalPrompt,
+                project_artifacts: JSON.parse(finalPrompt),
+                user_feedback: feedback,
+                api_key: encryptedApiKey,
+                password: password,
+                selected_model: selectedModel,
+                selected_groq_model: selectedGroqModel,
+            };
+        } catch (err) {
+            setError("Failed to parse project artifacts. The format is invalid.");
+            setIsLoading(false);
+            return;
+        }
+    } else {
+        endpoint = 'http://127.0.0.1:8000/update_prompt';
+        payload = {
+            original_prompt: originalPrompt,
+            final_prompt: finalPrompt,
+            user_feedback: feedback,
+            api_key: encryptedApiKey,
+            password: password,
+            style: style,
+            framework: framework,
+            selected_model: selectedModel,
+            selected_groq_model: selectedGroqModel,
+        };
+    }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/update_prompt', {
-        // const response = await fetch('https://promptnova.onrender.com/update_prompt', {
-
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -74,11 +129,17 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to refine prompt.');
+        throw new Error(errorData.detail || 'Failed to refine.');
       }
 
       const data = await response.json();
-      onRefined(data.updated_prompt);
+      
+      if (promptMode === 'project') {
+        onRefined(JSON.stringify(data.updated_artifacts));
+      } else {
+        onRefined(data.updated_prompt);
+      }
+
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'An unknown error occurred.');
@@ -116,7 +177,7 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
         document.cookie = `${passwordCookieName}=${reauthPassword};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
         
         setIsReauthenticating(false);
-        await handleSubmit(e);
+        await handleRefine(e);
 
     } catch {
         setError("Decryption failed. Incorrect password.");
@@ -158,7 +219,7 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 max-w-xl w-full" onClick={e => e.stopPropagation()}>
         <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Refine Your Prompt</h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleRefine}>
           <div className="mb-4">
             <label htmlFor="feedback" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               What didn’t you like? What could be improved?

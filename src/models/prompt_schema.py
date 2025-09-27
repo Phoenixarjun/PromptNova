@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
-from typing import List, Literal, Optional, Dict
+from pydantic import BaseModel, Field, validator
+from typing import List, Literal, Optional, Dict, Any
+import json
 
 class PromptSchema(BaseModel):
     """Pydantic model for prompt refinement input and output."""
@@ -43,3 +44,23 @@ class UpdatePromptSchema(BaseModel):
     password: Optional[str] = Field(None, description="Password to decrypt the user's API key.")
     selected_model: Optional[Literal["gemini", "mistral", "groq"]] = Field('gemini', description="The selected model provider.")
     selected_groq_model: Optional[str] = Field(None, description="The selected Groq model, if applicable.")
+
+
+class UpdateProjectSchema(BaseModel):
+    """Pydantic model for the project update request."""
+    original_user_prompt: str = Field(..., description="The initial high-level user requirement.")
+    project_artifacts: Dict[str, Any] = Field(..., description="The JSON object containing the current project architecture and plan.")
+    user_feedback: str = Field(..., description="The user's free-text feedback for improvement.")
+    api_key: Optional[str] = Field(None, description="User's encrypted API key for the LLM.")
+    password: Optional[str] = Field(None, description="Password to decrypt the user's API key.")
+    selected_model: Optional[Literal["gemini", "mistral", "groq"]] = Field('gemini', description="The selected model provider.")
+    selected_groq_model: Optional[str] = Field(None, description="The selected Groq model, if applicable.")
+
+    @validator('project_artifacts', pre=True)
+    def parse_project_artifacts(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                raise ValueError("project_artifacts must be a valid JSON string or a dictionary.")
+        return v

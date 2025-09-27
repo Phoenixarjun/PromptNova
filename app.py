@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException
-from src.models.prompt_schema import PromptSchema, UpdatePromptSchema
+from src.models.prompt_schema import PromptSchema, UpdatePromptSchema, UpdateProjectSchema
 from src.chains.pipeline import PromptPipeline
 from src.chains.project_pipeline import ProjectPipeline
 from src.chains.update_pipeline import UpdatePipeline
+from src.chains.project_update_pipeline import ProjectUpdatePipeline
 from src.config import GOOGLE_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY
 from Crypto.Cipher import AES
 from Crypto.Hash import MD5
@@ -123,8 +124,6 @@ async def generate_project_prompt(prompt_input: PromptSchema):
 @app.post("/update_prompt")
 async def update_prompt_endpoint(update_input: UpdatePromptSchema):
     try:
-        # The get_llm function expects a PromptSchema-like object with model details.
-        # We create a temporary object with just the necessary fields for get_llm.
         class LLMInput:
             def __init__(self, **kwargs):
                 self.selected_model = kwargs.get("selected_model")
@@ -145,6 +144,28 @@ async def update_prompt_endpoint(update_input: UpdatePromptSchema):
         return {"updated_prompt": updated_prompt}
     except Exception as e:
         logger.error(f"An unexpected error occurred in /update_prompt: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+
+@app.post("/project_update")
+async def project_update_endpoint(update_input: UpdateProjectSchema):
+    try:
+        class LLMInput:
+            def __init__(self, **kwargs):
+                self.selected_model = kwargs.get("selected_model")
+                self.selected_groq_model = kwargs.get("selected_groq_model")
+                self.api_key = kwargs.get("api_key")
+                self.password = kwargs.get("password")
+        llm_input = LLMInput(**update_input.dict())
+        llm = get_llm(llm_input)
+        pipeline = ProjectUpdatePipeline(llm=llm)
+        updated_artifacts = await pipeline.run(
+            original_user_prompt=update_input.original_user_prompt,
+            project_artifacts=update_input.project_artifacts,
+            user_feedback=update_input.user_feedback,
+        )
+        return {"updated_artifacts": updated_artifacts}
+    except Exception as e:
+        logger.error(f"An unexpected error occurred in /project_update: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 frontend_dir = Path("promptnova/out")

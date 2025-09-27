@@ -48,7 +48,7 @@ class UpdateEvaluator(PromptAgent):
 - Updated Prompt: {generated_prompt}
 
 **Instructions & Rules:**
-1.  **Verify Integration:** Has the 'Updated Prompt' fully applied the 'Improvement Suggestions'?
+1.  **Verify Integration:** Has the 'Updated Prompt' fully applied the 'Improvement Suggestions'? If there is no suggestions means "No".
 2.  **Check Alignment:** Does the prompt align with the required 'Style' and 'Framework'?
 3.  **Decide Status:**
     - If YES to both, set status to "yes".

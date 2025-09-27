@@ -271,6 +271,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
       }
 
       const data = await response.json();
+      console.log(data);
 
       if (data) {
         if (promptMode === 'project') {
@@ -387,6 +388,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         framework={selectedFramework}
         selectedModel={selectedModel}
         selectedGroqModel={selectedGroqModel}
+        promptMode={promptMode}
       />}
       <form onSubmit={handleSubmit}>
         <div className="flex justify-center mb-6">

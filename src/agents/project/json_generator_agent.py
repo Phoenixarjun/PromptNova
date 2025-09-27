@@ -25,8 +25,7 @@ class JSONGeneratorAgent(PromptAgent):
 
         template = PromptTemplate(
             input_variables=["user_input", "ideas", "plan", "architecture"],
-            template="""
-You are a Senior Software Engineer and Prompt Engineering specialist. 
+            template="""You are a Senior Software Engineer and Prompt Engineering specialist with a keen eye for UI/UX and design. 
 Your task is to synthesize all available information into a single, comprehensive, and well-structured JSON object. 
 This JSON must exactly reflect the **scope specified in the user's goal** (frontend only, backend only, or full-stack). 
 Do NOT include sections that are irrelevant to the user's requirements.
@@ -37,14 +36,14 @@ Do NOT include sections that are irrelevant to the user's requirements.
 {ideas}
 3. **Structural Plan:**
 {plan}
-4. **Proposed Architecture:**
+4. **Proposed Architecture (including Tech Stack and Design):**
 {architecture}
 
 **Your Task:**
-Generate a single, clean, and well-formed JSON object that encapsulates all of the information above.
-- If the user only wants **frontend**, include only keys relevant to UI/UX (appName, description, userRoles, features, uiComponents).
-- If the user only wants **backend**, include only backend keys (appName, description, userRoles, apiEndpoints, databaseSchema).
-- If the user wants **full-stack**, include all keys (frontend + backend).
+Generate a single, clean, and well-formed JSON object that encapsulates all of the information above. Synthesize the technology stack and UI/UX design details from the architecture proposal.
+- If the user only wants **frontend**, include only keys relevant to UI/UX (appName, description, userRoles, features, uiComponents, uiDesign, techStack).
+- If the user only wants **backend**, include only backend keys (appName, description, userRoles, apiEndpoints, databaseSchema, techStack).
+- If the user wants **full-stack**, include all relevant keys.
 - You may introduce or omit keys dynamically to best match the user’s goal.
 
 **JSON Schema Rules:**
@@ -52,11 +51,13 @@ Generate a single, clean, and well-formed JSON object that encapsulates all of t
   - `appName`: A suitable name for the application.
   - `description`: A detailed description of the application's purpose and functionality.
   - `userRoles`: An array of strings listing the user roles with brief descriptions.
-- Add only the additional top-level keys that make sense for the user’s goal. For example:
-  - `features` and/or `uiComponents` (frontend).
-  - `apiEndpoints` and/or `databaseSchema` (backend).
-  - `techStack` (only if relevant to the user’s scope).
-- Each section must be detailed and clear.
+- Add other top-level keys based on the scope:
+  - `techStack`: The technology stack from the architecture proposal.
+  - `features`: A list of key features.
+  - `uiComponents`: A list of UI components from the plan.
+  - `apiEndpoints`: A list of API endpoints.
+  - `databaseSchema`: The database schema definition.
+  - `uiDesign`: If the scope includes a frontend, add this key. It should be an object containing `colorPalette`, `typography`, and `aesthetic` details from the architecture proposal.
 
 **CRITICAL INSTRUCTION:** 
 Your output must be a JSON object with a single key "json". 

@@ -29,7 +29,7 @@ class RefinementAgent(PromptAgent):
 
         template = PromptTemplate(
             input_variables=["user_input", "json_prompt", "issues"],    
-            template="""You are a Senior Software Engineer specializing in debugging and refinement. Your task is to fix an incomplete or incorrect JSON object based on a list of identified issues.
+            template="""You are a Senior Software Engineer and UI/UX specialist specializing in debugging and refinement. Your task is to fix an incomplete or incorrect JSON object based on a list of identified issues, paying close attention to design and structural feedback.
 
 **Original User Goal:** 
 {user_input}
@@ -43,7 +43,7 @@ class RefinementAgent(PromptAgent):
             - {issues}
             
 **Your Task:**
-Rewrite the entire JSON object, correcting all the listed issues. The final output must be a single, complete, and valid JSON object.
+Rewrite the entire JSON object, correcting all the listed issues. This may involve adding missing sections (like `uiDesign` or `techStack`), correcting values, or restructuring parts of the JSON to meet the requirements. The final output must be a single, complete, and valid JSON object.
 
 **CRITICAL INSTRUCTION:** Your output must be ONLY the raw JSON object, enclosed in ```json ... ```. Do not include any other text, explanations, or wrappers."""
         )

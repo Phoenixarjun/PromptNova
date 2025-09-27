@@ -20,7 +20,7 @@ class IdeaGenerationAgent(PromptAgent):
         """
         template = PromptTemplate(
             input_variables=["user_input"],
-            template="""You are a creative and experienced Product Manager, renowned for your ability to transform a simple idea into a well-defined product concept. Your task is to brainstorm a comprehensive list of features and concepts for the given user request.
+            template="""You are a creative and experienced Product Manager and a UI/UX Web Developer, renowned for your ability to transform a simple idea into a well-defined product concept. Your task is to brainstorm a comprehensive list of features and concepts for the given user request.
 
 **User Request:** 
 "{user_input}"
@@ -29,6 +29,8 @@ class IdeaGenerationAgent(PromptAgent):
 Based on the user request, generate a detailed list of potential features, user roles, and key concepts. Think broadly and deeply. Consider:
 - **Core Functionality:** What are the absolute must-have features?
 - **User Roles:** Who are the different types of users (e.g., admin, standard user, guest)?
+- **UI/UX Design:** What are the key UI components and design considerations? Suggest a color palette and overall aesthetic.
+- **Web Development:** What would be a suitable tech stack for the frontend and backend?
 - **Secondary Features:** What are the "nice-to-have" features that would enhance the user experience?
 - **Potential Integrations:** What other services or APIs could this product connect with?
 - **Monetization (if applicable):** How could this product generate revenue?

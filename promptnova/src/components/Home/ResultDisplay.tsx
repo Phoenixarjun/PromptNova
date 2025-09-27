@@ -29,6 +29,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading,
     if (result) {
       try {
         const parsed = JSON.parse(result);
+        console.log(parsed);
         // Check for project-specific fields to determine the result type
         if (parsed.ideas || parsed.plan || parsed.architecture || parsed.json_prompt) {
           setParsedResult({
@@ -111,7 +112,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading,
                 </button>
               </div>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-6 overflow-hidden">
             {parsedResult.architecture && (
               <div>
                 <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Architecture</h3>
