@@ -1,8 +1,8 @@
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, Optional, Dict, List, Any
-from src.agents.feedback_analyzer_agent import FeedbackAnalyzerAgent, ReviewSuggestions
-from src.agents.prompt_updater_agent import PromptUpdaterAgent
-from src.agents.update_evaluator import UpdateEvaluator
+from src.agents.refine.feedback_analyzer_agent import FeedbackAnalyzerAgent, ReviewSuggestions
+from src.agents.refine.prompt_updater_agent import PromptUpdaterAgent
+from src.agents.refine.update_evaluator import UpdateEvaluator
 from src.logger import logger
 import asyncio
 
@@ -53,12 +53,13 @@ class UpdatePipeline:
             else:
                 if state.get("evaluation") and state["evaluation"].get("status") == "no":
                     # The guidance from the evaluator becomes the new set of suggestions.
-                    summary = state["evaluation"].get("summary", {})
-                    suggestions_to_use = {
-                        "deficiencies": summary.get("key_points", []),
-                        "adjustments": [summary.get("guidance", "")] if summary.get("guidance") else [],
-                        "suggestions": [] # No new suggestions from evaluator
-                    }
+                    summary = state["evaluation"].get("summary")
+                    if summary:
+                        suggestions_to_use = {
+                            "deficiencies": summary.get("key_points", []),
+                            "adjustments": [summary.get("guidance", "")] if summary.get("guidance") else [],
+                            "suggestions": [] # No new suggestions from evaluator
+                        }
 
             if not suggestions_to_use:
                 logger.warning("No suggestions found to update prompt. Returning current prompt.")

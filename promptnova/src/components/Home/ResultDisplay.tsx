@@ -13,6 +13,12 @@ interface ResultDisplayProps {
 interface ParsedResult {
   explanation: string;
   refined_prompt: string;
+  // Project-specific fields
+  ideas?: string;
+  plan?: string;
+  architecture?: string;
+  isProject?: boolean;
+  evaluation?: string;
 }
 
 export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error }) => {
@@ -23,18 +29,28 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading,
     if (result) {
       try {
         const parsed = JSON.parse(result);
-        if (typeof parsed === 'object' && parsed !== null && (parsed.refined_prompt || parsed.explanation)) {
+        // Check for project-specific fields to determine the result type
+        if (parsed.ideas || parsed.plan || parsed.architecture || parsed.json_prompt) {
+          setParsedResult({
+            isProject: true,
+            ideas: parsed.ideas || '',
+            plan: parsed.plan || '',
+            architecture: parsed.architecture || '',
+            refined_prompt: parsed.json_prompt ? JSON.stringify(parsed.json_prompt, null, 2) : '',
+            explanation: '', // Not applicable for projects in this structure
+            evaluation: parsed.evaluation ? JSON.stringify(parsed.evaluation, null, 2) : '',
+          });
+        } else if (typeof parsed === 'object' && parsed !== null && (parsed.refined_prompt || parsed.explanation)) {
+          // Handle standard refine response
           setParsedResult({
             refined_prompt: parsed.refined_prompt || '',
-            explanation: parsed.explanation || ''
+            explanation: parsed.explanation || '',
+            isProject: false,
           });
-        } else {
-          // Fallback for when result is a plain string
-          setParsedResult({ refined_prompt: String(result), explanation: '' });
         }
       } catch (e) {
-        // Fallback for when result is a non-JSON string
-        setParsedResult({ refined_prompt: result, explanation: '' });
+        // Fallback for when result is a non-JSON string that fails to parse
+        setParsedResult({ refined_prompt: result, explanation: '', isProject: false });
       }
     } else {
       setParsedResult(null);
@@ -79,11 +95,11 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading,
 
   return (
     <div className="max-w-3xl mx-auto my-8 space-y-8">
-      {/* Refined Prompt Section */}
-      {parsedResult.refined_prompt && (
-        <div>
+      {/* Project Mode Display */}
+      {parsedResult.isProject ? (
+        <>
           <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Generated Prompt</h2>
+              <h2 className="text-2xl font-extrabold text-gray-800 dark:text-gray-100">Project Generation Result</h2>
               <div className="flex items-center gap-2">
                 <button onClick={handleCopy} className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 dark:bg-gray-700 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                   {isCopied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
@@ -95,20 +111,56 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading,
                 </button>
               </div>
           </div>
-          <div className="bg-white dark:bg-gray-900 p-6 border border-gray-200 dark:border-gray-700 rounded-md">
-            <MarkdownRenderer content={parsedResult.refined_prompt} />
+          <div className="space-y-6">
+            {parsedResult.architecture && (
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Architecture</h3>
+                <div className="bg-white dark:bg-gray-900 p-6 border border-gray-200 dark:border-gray-700 rounded-md">
+                  <MarkdownRenderer content={parsedResult.architecture} />
+                </div>
+              </div>
+            )}
+            {parsedResult.refined_prompt && (
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">JSON Prompt</h3>
+                <div className="bg-white dark:bg-gray-900 p-6 border border-gray-200 dark:border-gray-700 rounded-md">
+                  <MarkdownRenderer content={`\`\`\`json\n${parsedResult.refined_prompt}\n\`\`\``} />
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-
-      {/* Explanation Section */}
-      {parsedResult.explanation && (
-        <div>
-          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Explanation</h2>
-          <div className="bg-white dark:bg-gray-900 p-6 border border-gray-200 dark:border-gray-700 rounded-md">
-            <MarkdownRenderer content={parsedResult.explanation} />
-          </div>
-        </div>
+        </>
+      ) : (
+        <>
+          {parsedResult.refined_prompt && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Generated Prompt</h2>
+                  <div className="flex items-center gap-2">
+                    <button onClick={handleCopy} className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 dark:bg-gray-700 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                      {isCopied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                      {isCopied ? 'Copied' : 'Copy'}
+                    </button>
+                    <button onClick={handleRefine} className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors">
+                      <RefreshCw className="h-4 w-4" />
+                      Refine
+                    </button>
+                  </div>
+              </div>
+              <div className="bg-white dark:bg-gray-900 p-6 border border-gray-200 dark:border-gray-700 rounded-md">
+                <MarkdownRenderer content={parsedResult.refined_prompt} />
+              </div>
+              {parsedResult.explanation && (
+                <div className="mt-6">
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Explanation</h3>
+                  <div className="bg-white dark:bg-gray-900 p-6 border border-gray-200 dark:border-gray-700 rounded-md">
+                    <MarkdownRenderer content={parsedResult.explanation} />
+                  </div>
+                </div>
+              )}
+              </div>
+          )}
+        </>
       )}
     </div>
   );

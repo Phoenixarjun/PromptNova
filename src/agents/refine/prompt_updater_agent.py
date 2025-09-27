@@ -1,5 +1,5 @@
 from langchain.prompts import PromptTemplate
-from .prompt_agent import PromptAgent
+from ..prompt_agent import PromptAgent
 from typing import Optional, Dict, List, Any
 
 class PromptUpdaterAgent(PromptAgent):

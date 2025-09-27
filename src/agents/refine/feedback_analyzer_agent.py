@@ -1,5 +1,5 @@
 from langchain.prompts import PromptTemplate
-from .prompt_agent import PromptAgent
+from ..prompt_agent import PromptAgent
 from typing import Optional, List, Any
 from pydantic import BaseModel, Field
 

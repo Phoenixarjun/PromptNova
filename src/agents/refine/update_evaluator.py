@@ -1,5 +1,5 @@
 from langchain.prompts import PromptTemplate
-from .prompt_agent import PromptAgent
+from ..prompt_agent import PromptAgent
 from typing import Dict, Optional, List, Literal, Any
 from src.logger import logger
 from pydantic import BaseModel, Field
@@ -39,24 +39,42 @@ class UpdateEvaluator(PromptAgent):
         """Evaluates whether the updated prompt has correctly applied improvements and meets expert-level quality."""
         evaluation_template = PromptTemplate(
             input_variables=["user_prompt", "generated_prompt", "suggestions", "style", "framework"],
-            template='''You are a Prompt Evaluation Expert.
+            template='''You are a Prompt Evaluation Expert. Your task is to evaluate if the 'Updated Prompt' has correctly integrated the 'Improvement Suggestions'.
 
-**Task:** Evaluate if the 'Updated Prompt' has correctly integrated the 'Improvement Suggestions'.
-
-**Inputs:**
+- **Inputs:**
 - Required Style: {style}
 - Required Framework: {framework}
 - Improvement Suggestions: {suggestions}
 - Updated Prompt: {generated_prompt}
 
-**Instructions:**
+**Instructions & Rules:**
 1.  **Verify Integration:** Has the 'Updated Prompt' fully applied the 'Improvement Suggestions'?
 2.  **Check Alignment:** Does the prompt align with the required 'Style' and 'Framework'?
 3.  **Decide Status:**
     - If YES to both, set status to "yes".
-    - If NO to either, set status to "no" and provide `key_points` (remaining issues) and `guidance` (one actionable fix).
+    - If NO to either, set status to "no" and **you MUST provide a `summary` object** containing `key_points` (a list of remaining issues) and `guidance` (one actionable fix).
 
-Your output must be a JSON object.'''
+**Output Format:**
+You MUST respond ONLY with a valid JSON object. If the status is "no", the `summary` field is REQUIRED.
+
+**Example for a 'no' status:**
+```json
+{{
+  "status": "no",
+  "summary": {{
+    "key_points": ["The prompt still lacks a clear call to action.", "The tone is too formal for the target audience."],
+    "guidance": "Add a direct call to action at the end of the prompt and adjust the tone to be more conversational and engaging."
+  }}
+}}
+```
+
+**Example for a 'yes' status:**
+```json
+{{
+  "status": "yes",
+  "summary": null
+}}
+```'''
         )
         chain = evaluation_template | self.structured_llm
         try:

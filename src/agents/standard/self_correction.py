@@ -1,5 +1,5 @@
 from langchain.prompts import PromptTemplate
-from .prompt_agent import PromptAgent
+from ..prompt_agent import PromptAgent
 from typing import List, Dict, Optional, Literal, Any
 import json
 import re

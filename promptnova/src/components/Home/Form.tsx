@@ -5,6 +5,15 @@ import CryptoJS from 'crypto-js';
 import { RefineForm } from './RefineForm';
 import { AdvancedOptions } from './AdvancedOptions';
 import {
+  combos,
+  types,
+  frameworks,
+  projectParamsSchema,
+  Example,
+  AdvancedParams,
+  ValidationError,
+} from './form-details';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -15,20 +24,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface Example {
-  id: number;
-  input: string;
-  output: string;
-}
-
-interface AdvancedParams {
-  types?: { [key: string]: { [key: string]: string } };
-  framework?: { [key: string]: { [key: string]: string } };
-}
-
-interface ValidationError {
-  loc?: (string | number)[];
-  msg?: string;
+interface ProjectParams {
+  [key: string]: string;
 }
 
 interface FormProps {
@@ -50,129 +47,7 @@ const getCookie = (name: string): string | null => {
 
 const getStorageKey = (model: string) => `${model}_api_key_encrypted`;
 
-const combos = [
-  {
-    name: "Custom",
-    description: "Select your own combination of types and framework.",
-    types: [] as string[],
-    framework: null as string | null,
-  },
-  {
-    name: "Build Clean Code with Expert Guidance",
-    description: "Goal: robust, well-structured code with explanations. This combo uses Step-by-Step Reasoning, Role-Based Expertise, and advanced decomposition techniques within the Co-Star framework to produce high-quality code.",
-    types: ['cot', 'role', 'task_decomposition', 'tot'],
-    framework: 'co_star',
-  },
-  {
-    name: "Create Compelling Content",
-    description: "Goal: engaging blog posts, articles, or marketing copy. This combo uses directional nudges, emotional infusion, and knowledge generation with examples under the CRISPE framework to create persuasive content.",
-    types: ['directional_stimulus', 'emotion', 'generated_knowledge', 'few_shot'],
-    framework: 'crispe',
-  },
-  {
-    name: "Smart Problem Solver",
-    description: "Goal: solve a tricky problem or plan something. This combo uses progressive reasoning, self-correction, and task decomposition with Automatic Prompt Engineering to break down and solve complex problems.",
-    types: ['least_to_most', 'task_decomposition', 'automatic_prompt_engineering'],
-    framework: 'ape',
-  },
-  {
-    name: "Creative Idea Generator",
-    description: "Goal: creative ideas for projects, features, names, etc. This combo uses multi-tasking, emotional appeal, and knowledge injection within the Co-Star framework to spark innovative ideas.",
-    types: ['multi_task', 'emotion', 'generated_knowledge'],
-    framework: 'co_star',
-  },
-  {
-    name: "Advanced Reasoning + Verification",
-    description: "Goal: High-accuracy logic-heavy outputs like coding, math, or decision-making. This combo uses Chain-of-Thought for step-by-step reasoning, Chain-of-Verification for correctness, and Task Decomposition to split complex tasks, all orchestrated by the Co-Star framework.",
-    types: ['cot', 'chain_of_verification', 'task_decomposition'],
-    framework: 'co_star',
-  },
-  {
-    name: "Creative Content + Roleplay",
-    description: "Goal: Writing, marketing content, or brainstorming ideas. This combo uses Role Assignment for creativity, Few-Shot examples for consistency, and ReAct to take external actions, all within the Tool-Oriented Prompting framework to connect with creative tools.",
-    types: ['role', 'few_shot', 'react'],
-    framework: 'tool_oriented_prompting',
-  },
-  {
-    name: "Research + Analysis",
-    description: "Goal: Knowledge-heavy tasks like report generation or research synthesis. This combo uses Retrieval-Augmented Prompting to fetch data, Active-Prompt to self-correct, and Reflexion to iteratively improve, all structured by the Neuro-Symbolic framework for explainable reasoning.",
-    types: ['retrieval_augmented_prompting', 'active_prompt', 'reflexion_type', 'skeleton_of_thought'],
-    framework: 'neuro_symbolic_prompting',
-  },
-  {
-    name: "Long-Term Planning + Multi-Context Tasks",
-    description: "Goal: Strategic planning, project management, or multi-step execution. This combo uses Plan-and-Solve to separate planning from execution, Context Expansion to maintain relevant info, and Multi-Agent Debate for diverse evaluation, all managed by Dynamic Context Windows for long-session continuity.",
-    types: ['plan_and_solve', 'context_expansion', 'multi_agent_debate', 'goal_oriented_prompting'],
-    framework: 'dynamic_context_windows',
-  },
-];
-
-
 export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, setError, isLoading, selectedModel, selectedGroqModel }) => {
-  const types = [
-    { name: 'Zero Shot', slug: 'zero_shot' },
-    { name: 'One Shot', slug: 'one_shot' },
-    { name: 'Chain of Thought (CoT)', slug: 'cot' },
-    { name: 'Tree of Thought (ToT)', slug: 'tot' },
-    { name: 'ReAct', slug: 'react' },
-    { name: 'In Context', slug: 'in_context' },
-    { name: 'Emotion', slug: 'emotion' },
-    { name: 'Role', slug: 'role' },
-    { name: 'Few Shot', slug: 'few_shot' },
-    { name: 'Self Consistency', slug: 'self_consistency' },
-    { name: 'Meta Prompting', slug: 'meta_prompting' },
-    { name: 'Least to Most', slug: 'least_to_most' },
-    { name: 'Multi Task', slug: 'multi_task' },
-    { name: 'Task Decomposition', slug: 'task_decomposition' },
-    { name: 'Constrained', slug: 'constrained' },
-    { name: 'Generated Knowledge', slug: 'generated_knowledge' },
-    { name: 'Automatic Prompt Engineering', slug: 'automatic_prompt_engineering' },
-    { name: 'Directional Stimulus', slug: 'directional_stimulus' },
-    { name: 'Chain-of-Verification (CoVe)', slug: 'chain_of_verification' },
-    { name: 'Skeleton-of-Thought (SoT)', slug: 'skeleton_of_thought' },
-    { name: 'Graph-of-Thoughts (GoT)', slug: 'graph_of_thoughts' },
-    { name: 'Plan-and-Solve (PS)', slug: 'plan_and_solve' },
-    { name: 'Maieutic Prompting', slug: 'maieutic_prompting' },
-    { name: 'Reflexion', slug: 'reflexion_type' },
-    { name: 'Chain-of-Density (CoD)', slug: 'chain_of_density' },
-    { name: 'Active-Prompt', slug: 'active_prompt' },
-    { name: 'Retrieval-Augmented (RAP)', slug: 'retrieval_augmented_prompting' },
-    { name: 'Multi-Agent Debate', slug: 'multi_agent_debate' },
-    { name: 'Persona Switching', slug: 'persona_switching' },
-    { name: 'Scaffolded Prompting', slug: 'scaffolded_prompting' },
-    { name: 'Deliberation Prompting', slug: 'deliberation_prompting' },
-    { name: 'Context Expansion', slug: 'context_expansion' },
-    { name: 'Goal-Oriented Prompting', slug: 'goal_oriented_prompting' },
-  ];
-
-  const frameworks = [
-    { name: 'Co-Star', slug: 'co_star' },
-    { name: 'TCEF', slug: 'tcef' },
-    { name: 'CRISPE', slug: 'crispe' },
-    { name: 'RTF', slug: 'rtf' },
-    { name: 'ICE', slug: 'ice' },
-    { name: 'CRAFT', slug: 'craft' },
-    { name: 'APE', slug: 'ape' },
-    { name: 'PECRA', slug: 'pecra' },
-    { name: 'OSCAR', slug: 'oscar' },
-    { name: 'RASCE', slug: 'rasce' },
-    { name: 'Reflection', slug: 'reflection' },
-    { name: 'Flipped Interaction', slug: 'flipped_interaction' },
-    { name: 'BAB', slug: 'bab' },
-    { name: 'PROMPT Framework', slug: 'prompt' },
-    { name: 'SOAP', slug: 'soap' },
-    { name: 'CLEAR', slug: 'clear' },
-    { name: 'PRISM', slug: 'prism' },
-    { name: 'GRIPS', slug: 'grips' },
-    { name: 'APP', slug: 'app' },
-    { name: 'SCOPE', slug: 'scope' },
-    { name: 'Tool-Oriented Prompting (TOP)', slug: 'tool_oriented_prompting' },
-    { name: 'Neuro-Symbolic Prompting', slug: 'neuro_symbolic_prompting' },
-    { name: 'Dynamic Context Windows', slug: 'dynamic_context_windows' },
-    { name: 'Meta-Cognitive Prompting', slug: 'meta_cognitive_prompting' },
-    { name: 'Prompt Ensembles', slug: 'prompt_ensembles' },
-  ];
-
   const [promptText, setPromptText] = useState('');
   const [examples, setExamples] = useState<Example[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -187,6 +62,8 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const [showPassword, setShowPassword] = useState(false);
   const [parsedPrompt, setParsedPrompt] = useState('');
   const [mode, setMode] = useState<'normal' | 'expert'>('normal');
+  const [promptMode, setPromptMode] = useState<'task' | 'project'>('task');
+  const [projectParams, setProjectParams] = useState<ProjectParams>({});
   const [advancedParams, setAdvancedParams] = useState<AdvancedParams>({ types: {}, framework: {} });
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorDialogContent, setErrorDialogContent] = useState({ message: '', rawResponse: '' });
@@ -204,7 +81,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
   useEffect(() => {
     const matchingComboIndex = combos.findIndex((combo, index) => {
-      if (index === 0) return false; // Skip "Custom"
+      if (index === 0) return false;
       const sortedComboTypes = [...combo.types].sort();
       const sortedCurrentTypes = [...selectedTypes].sort();
       
@@ -278,6 +155,12 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     setExamples(prev => prev.filter(ex => ex.id !== id));
   };
 
+  const handleProjectParamsChange = (field: keyof ProjectParams, value: string) => {
+    setProjectParams(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -298,6 +181,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     }
 
     let finalPromptText = promptText;
+    let endpoint = 'http://127.0.0.1:8000/refine';
 
     if (mode === 'expert') {
       const cleanParams: AdvancedParams = { types: {}, framework: {} };
@@ -329,11 +213,19 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         finalPromptText = `${expertDetailsString}\n\n---\n\n${promptText}`;
       }
     }
-    
-    if (selectedModel === 'groq') {
-      finalPromptText += "\n\n---\nInstruction: Your entire response must be a single, raw JSON object. Do not use tools, functions, or markdown formatting like ```json. Your output should start with { and end with }.";
+
+    if (promptMode === 'project') {
+      endpoint = 'http://127.0.0.1:8000/project';
+      if (mode === 'expert') {
+        const cleanProjectParams = Object.fromEntries(Object.entries(projectParams).filter(([, v]) => v));
+        finalPromptText = `Project Details:\n${JSON.stringify(cleanProjectParams, null, 2)}\n\n---\n\n${promptText}`;
+      }
     }
 
+    if (selectedModel === 'groq') {
+      finalPromptText += "\n\n---\nInstruction: For better clarity, your entire response must be a single, raw JSON object. Do not use tools, functions, or markdown formatting like ```json. Your output should start with { and end with }.";
+    }
+    
     const payload = {
       user_input: finalPromptText,
       examples: examples.map(ex => ({ input: ex.input, output: ex.output })).filter(ex => ex.input && ex.output),
@@ -345,9 +237,14 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
       selected_groq_model: selectedGroqModel,
     };
 
+    if (promptMode === 'project') {
+      // Override framework and style for project mode as per backend requirements
+      payload.framework = 'co_star'; // Use a valid default framework
+      payload.style = ['zero_shot']; // Use a valid default style
+    }
+
     try {
-      // const response = await fetch('http://127.0.0.1:8000/refine', {
-      const response = await fetch('https://promptnova.onrender.com/refine', {
+      const response = await fetch(endpoint, {
 
         method: 'POST',
         headers: {
@@ -375,26 +272,15 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
       const data = await response.json();
 
-      if (data && typeof data === 'object' && data.output_str) {
-        if (typeof data.output_str === 'object' && data.output_str.refined_prompt) {
+      if (data) {
+        if (promptMode === 'project') {
+          setResult(JSON.stringify(data));
+        } else if (data.output_str && typeof data.output_str === 'object') {
           setResult(JSON.stringify(data.output_str));
-        } else if (typeof data.output_str === 'string') {
-          setResult(data.output_str);
         } else {
-           setError("Received an unexpected response format from the server.");
-           setResult(JSON.stringify(data, null, 2));
+          setResult(JSON.stringify({ refined_prompt: data.refined_prompt || data.updated_prompt, explanation: data.explanation || '' }));
         }
-      } else if (data && typeof data.refined_prompt === 'string') {
-        const output = {
-          explanation: data.explanation || '',
-          refined_prompt: data.refined_prompt
-        };
-        setResult(JSON.stringify(output));
-      } else {
-        setError("Received an unexpected response format from the server.");
-        setResult(JSON.stringify(data, null, 2));
       }
-
     } catch (e) {
       setError(e instanceof Error ? e.message : 'An unknown error occurred.');
       setResult('');
@@ -538,202 +424,244 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
           />
         </div>
 
-        {mode === 'expert' && (
-          <AdvancedOptions
-            selectedTypes={selectedTypes}
-            selectedFramework={selectedFramework}
-            advancedParams={advancedParams}
-            setAdvancedParams={setAdvancedParams}
-          />
-        )}
+        <div className="flex justify-center mb-6">
+          <div className="bg-gray-200 dark:bg-gray-800 p-1 rounded-lg flex">
+            <button type="button" onClick={() => setPromptMode('task')} className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${promptMode === 'task' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow' : 'text-gray-600 dark:text-gray-400'}`}>
+              Task
+            </button>
+            <button type="button" onClick={() => setPromptMode('project')} className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${promptMode === 'project' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow' : 'text-gray-600 dark:text-gray-400'}`}>
+              Project
+            </button>
+          </div>
+        </div>
 
-        <div className="mb-6">
-          <label className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">
-            Examples (Optional)
-          </label>
-          <div className="space-y-4">
-            {examples.map((example, index) => (
-              <div key={example.id} className="relative rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label htmlFor={`example-input-${index}`} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Input
-                    </label>
-                    <textarea
-                      id={`example-input-${index}`}
-                      value={example.input}
-                      onChange={(e) => handleExampleChange(example.id, 'input', e.target.value)}
-                      placeholder="Example input"
-                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 resize-y min-h-[80px] text-sm"
-                    />
+        {/* Scenarios 1 & 2: Normal + Task and Expert + Task */}
+        {promptMode === 'task' && (
+          <>
+            {mode === 'expert' && (
+              <AdvancedOptions
+                selectedTypes={selectedTypes}
+                selectedFramework={selectedFramework}
+                advancedParams={advancedParams}
+                setAdvancedParams={setAdvancedParams}
+              />
+            )}
+            <div className="mb-6">
+              <label className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">
+                Examples (Optional)
+              </label>
+              <div className="space-y-4">
+                {examples.map((example, index) => (
+                  <div key={example.id} className="relative p-4 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:border-gray-700">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <label htmlFor={`example-input-${index}`} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Input
+                        </label>
+                        <textarea
+                          id={`example-input-${index}`}
+                          value={example.input}
+                          onChange={(e) => handleExampleChange(example.id, 'input', e.target.value)}
+                          placeholder="Example input"
+                          className="w-full p-2 text-sm bg-white border border-gray-300 rounded-md resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor={`example-output-${index}`} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Output/Example
+                        </label>
+                        <textarea
+                          id={`example-output-${index}`}
+                          value={example.output}
+                          onChange={(e) => handleExampleChange(example.id, 'output', e.target.value)}
+                          placeholder="Expected output"
+                          className="w-full p-2 text-sm bg-white border border-gray-300 rounded-md resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeExample(example.id)}
+                      className="absolute flex items-center justify-center w-5 h-5 text-white transition-colors bg-gray-500 rounded-full -top-2 -right-2 hover:bg-red-600 dark:bg-gray-600 dark:hover:bg-red-500"
+                      aria-label="Remove example"
+                    >
+                      <span className="text-sm leading-none pb-0.5">&times;</span>
+                    </button>
                   </div>
-                  <div>
-                    <label htmlFor={`example-output-${index}`} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Output/Example
-                    </label>
-                    <textarea
-                      id={`example-output-${index}`}
-                      value={example.output}
-                      onChange={(e) => handleExampleChange(example.id, 'output', e.target.value)}
-                      placeholder="Expected output"
-                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 resize-y min-h-[80px] text-sm"
-                    />
-                  </div>
-                </div>
+                ))}
+              </div>
+              <button type="button" onClick={addExample} className="w-full px-4 py-2 mt-4 text-sm font-medium text-center text-gray-600 transition-colors bg-gray-50 border-2 border-dashed border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 hover:border-gray-400 hover:bg-gray-100 dark:hover:border-gray-600 dark:hover:bg-gray-700">
+                + Add Example
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Prompt Strategy (Optional)
+              </h2>
+              <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">Select a pre-built strategy or create your own custom combination below.</p>
+              <div className="relative flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => removeExample(example.id)}
-                  className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-500 dark:bg-gray-600 text-white hover:bg-red-600 dark:hover:bg-red-500 transition-colors"
-                  aria-label="Remove example"
+                  onClick={handleNextCombo}
+                  className="flex-grow px-4 py-2 text-left text-gray-800 transition-colors bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  <span className="text-sm leading-none pb-0.5">&times;</span>
+                  <span className="font-medium">{combos[currentComboIndex].name}</span>
                 </button>
+                {currentComboIndex > 0 && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setShowInfo(true); }}
+                    className="p-2 text-gray-500 rounded-full dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    aria-label="Show strategy info"
+                  >
+                    <Info className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {showInfo && currentComboIndex > 0 && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50" onClick={() => setShowInfo(false)}>
+                <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-xl dark:bg-gray-800" onClick={e => e.stopPropagation()}>
+                  <h3 className="mb-2 text-lg font-bold text-gray-900 dark:text-gray-100">{combos[currentComboIndex].name}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{combos[currentComboIndex].description}</p>
+                  <button onClick={() => setShowInfo(false)} className="w-full px-4 py-2 mt-4 text-white bg-gray-800 rounded-md dark:bg-blue-600 hover:bg-gray-700 dark:hover:bg-blue-700">Close</button>
+                </div>
+              </div>
+            )}
+
+            <div className="mb-6">
+              <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Select Prompt Types (Multiple)</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {visibleTypes.map(type => (
+                  <button
+                    key={type.slug}
+                    type="button"
+                    onClick={() => handleTypeToggle(type.slug)}
+                    className={`px-4 py-2 rounded-md text-sm font-medium  transition-colors duration-200
+                      ${selectedTypes.includes(type.slug) ?
+                        'bg-gray-800 text-white dark:bg-gray-300 dark:text-gray-800 border border-gray-800 dark:border-white'
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                  >
+                    {type.name}
+                  </button>
+                ))}
+              </div>
+              {types.length > 6 && (
+                <div className="mt-4 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowAllTypes(prev => !prev)}
+                    className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:underline"
+                  >
+                    {showAllTypes ? 'Show Less' : `Show ${types.length - 6} More...`}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="mb-6">
+              <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Select Framework (Single)</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {visibleFrameworks.map(framework => (
+                  <button
+                    key={framework.slug}
+                    type="button"
+                    onClick={() => handleFrameworkSelect(framework.slug)}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                      ${selectedFramework === framework.slug ?
+                        'bg-gray-800 text-white dark:bg-gray-300 dark:text-gray-800 border border-gray-800 dark:border-white'
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                  >
+                    {framework.name}
+                  </button>
+                ))}
+              </div>
+              {frameworks.length > 6 && (
+                <div className="mt-4 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowAllFrameworks(prev => !prev)} className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:underline"
+                  >
+                    {showAllFrameworks ? 'Show Less' : `Show ${frameworks.length - 6} More...`}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="mb-6">
+              <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Selected Types</h2>
+              <div className="flex flex-wrap gap-2">
+                {selectedTypes.length > 0 ? (
+                  selectedTypes.map(slug => (
+                    <span key={slug} className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
+                      {types.find(t => t.slug === slug)?.name || slug}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSelected(slug, 'type')}
+                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white ml-1"
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No types selected.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Selected Framework</h2>
+              <div className="flex flex-wrap gap-2">
+                {selectedFramework ? (
+                  <span className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
+                    {frameworks.find(f => f.slug === selectedFramework)?.name || selectedFramework}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSelected(selectedFramework, 'framework')}
+                      className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white ml-1"
+                    >
+                      &times;
+                    </button>
+                  </span>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No framework selected.</p>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Scenario 3: Normal + Project */}
+        {promptMode === 'project' && mode === 'normal' && (
+          <div className="p-4 my-6 text-sm text-center text-blue-700 bg-blue-100 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-500/30">
+            <p>For Project mode, the prompt will be automatically structured as JSON. Just describe your project requirements above.</p>
+          </div>
+        )}
+
+        {/* Scenario 4: Expert + Project */}
+        {promptMode === 'project' && mode === 'expert' && (
+          <div className="mb-6 space-y-4">
+            <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Project Details</h2>
+            {Object.entries(projectParamsSchema).map(([key, { label, description }]) => (
+              <div key={key}>
+                <label htmlFor={`project-${key}`} className="block mb-1 text-xs font-medium text-gray-600 dark:text-gray-400">{label}</label>
+                <textarea
+                  id={`project-${key}`}
+                  value={projectParams[key as keyof ProjectParams] || ''}
+                  onChange={(e) => handleProjectParamsChange(key as keyof ProjectParams, e.target.value)}
+                  placeholder={description}
+                  className="w-full p-2 text-sm bg-white border border-gray-300 rounded-md resize-y min-h-[40px] focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+                  rows={1}
+                />
               </div>
             ))}
           </div>
-          <button type="button" onClick={addExample} className="mt-4 w-full rounded-md border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 py-2 px-4 text-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-            + Add Example
-          </button>
-        </div>
-
-        <div className="mb-6">
-          <h2 className="text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">
-            Prompt Strategy (Optional)
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Select a pre-built strategy or create your own custom combination below.</p>
-          <div className="relative flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleNextCombo}
-              className="flex-grow bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-            >
-              <span className="font-medium">{combos[currentComboIndex].name}</span>
-            </button>
-            {currentComboIndex > 0 && (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setShowInfo(true); }}
-                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                aria-label="Show strategy info"
-              >
-                <Info className="h-5 w-5" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {showInfo && currentComboIndex > 0 && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowInfo(false)}>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">{combos[currentComboIndex].name}</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">{combos[currentComboIndex].description}</p>
-              <button onClick={() => setShowInfo(false)} className="mt-4 w-full bg-gray-800 dark:bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 dark:hover:bg-blue-700">Close</button>
-            </div>
-          </div>
         )}
-
-        <div className="mb-6">
-          <h2 className="text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">Select Prompt Types (Multiple)</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {visibleTypes.map(type => (
-              <button
-                key={type.slug}
-                type="button"
-                onClick={() => handleTypeToggle(type.slug)}
-                className={`px-4 py-2 rounded-md text-sm font-medium  transition-colors duration-200
-                  ${selectedTypes.includes(type.slug) ?
-                    'bg-gray-800 text-white dark:bg-gray-300 dark:text-gray-800 border border-gray-800 dark:border-white'
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-              >
-                {type.name}
-              </button>
-            ))}
-          </div>
-          {types.length > 6 && (
-            <div className="mt-4 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setShowAllTypes(prev => !prev)}
-                className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:underline"
-              >
-                {showAllTypes ? 'Show Less' : `Show ${types.length - 6} More...`}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="mb-6">
-          <h2 className="text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">Select Framework (Single)</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {visibleFrameworks.map(framework => (
-              <button
-                key={framework.slug}
-                type="button"
-                onClick={() => handleFrameworkSelect(framework.slug)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200
-                  ${selectedFramework === framework.slug ?
-                    'bg-gray-800 text-white dark:bg-gray-300 dark:text-gray-800 border border-gray-800 dark:border-white'
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-              >
-                {framework.name}
-              </button>
-            ))}
-          </div>
-          {frameworks.length > 6 && (
-            <div className="mt-4 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setShowAllFrameworks(prev => !prev)} className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:underline"
-              >
-                {showAllFrameworks ? 'Show Less' : `Show ${frameworks.length - 6} More...`}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="mb-6">
-          <h2 className="text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">Selected Types</h2>
-          <div className="flex flex-wrap gap-2">
-            {selectedTypes.length > 0 ? (
-              selectedTypes.map(slug => (
-                <span key={slug} className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
-                  {types.find(t => t.slug === slug)?.name || slug}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSelected(slug, 'type')}
-                    className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white ml-1"
-                  >
-                    &times;
-                  </button>
-                </span>
-              ))
-            ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-sm">No types selected.</p>
-            )}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h2 className="text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">Selected Framework</h2>
-          <div className="flex flex-wrap gap-2">
-            {selectedFramework ? (
-              <span className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
-                {frameworks.find(f => f.slug === selectedFramework)?.name || selectedFramework}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSelected(selectedFramework, 'framework')}
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white ml-1"
-                >
-                  &times;
-                </button>
-              </span>
-            ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-sm">No framework selected.</p>
-            )}
-          </div>
-        </div>
 
         <button
           type="submit"

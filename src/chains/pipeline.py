@@ -59,9 +59,9 @@ from src.agents.frameworks.neuro_symbolic_prompting import NeuroSymbolicPromptin
 from src.agents.frameworks.dynamic_context_windows import DynamicContextWindows
 from src.agents.frameworks.meta_cognitive_prompting import MetaCognitivePrompting
 from src.agents.frameworks.prompt_ensembles import PromptEnsembles
-from src.agents.self_correction import SelfCorrection
-from src.agents.refine_agent import RefineAgent
-from src.agents.final_prompt import FinalPrompt
+from src.agents.standard.self_correction import SelfCorrection
+from src.agents.standard.refine_agent import RefineAgent
+from src.agents.standard.final_prompt import FinalPrompt
 from src.logger import logger
 import asyncio
 

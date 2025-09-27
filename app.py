@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from src.models.prompt_schema import PromptSchema, UpdatePromptSchema
 from src.chains.pipeline import PromptPipeline
+from src.chains.project_pipeline import ProjectPipeline
 from src.chains.update_pipeline import UpdatePipeline
 from src.config import GOOGLE_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY
 from Crypto.Cipher import AES
@@ -108,11 +109,30 @@ async def refine_prompt(prompt_input: PromptSchema):
         logger.error(f"Error refining prompt: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error refining prompt: {str(e)}")
 
+@app.post("/project")
+async def generate_project_prompt(prompt_input: PromptSchema):
+    try:
+        llm = get_llm(prompt_input)
+        pipeline = ProjectPipeline(llm=llm)
+        result = await pipeline.run(prompt_input)
+        return result
+    except Exception as e:
+        logger.error(f"Error generating project prompt: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error generating project prompt: {str(e)}")
 
 @app.post("/update_prompt")
 async def update_prompt_endpoint(update_input: UpdatePromptSchema):
     try:
-        llm = get_llm(update_input)
+        # The get_llm function expects a PromptSchema-like object with model details.
+        # We create a temporary object with just the necessary fields for get_llm.
+        class LLMInput:
+            def __init__(self, **kwargs):
+                self.selected_model = kwargs.get("selected_model")
+                self.selected_groq_model = kwargs.get("selected_groq_model")
+                self.api_key = kwargs.get("api_key")
+                self.password = kwargs.get("password")
+        llm_input = LLMInput(**update_input.dict())
+        llm = get_llm(llm_input)
         pipeline = UpdatePipeline(llm=llm)
         updated_prompt = await pipeline.run(
             original_prompt=update_input.original_prompt,
@@ -121,6 +141,7 @@ async def update_prompt_endpoint(update_input: UpdatePromptSchema):
             style=update_input.style,
             framework=update_input.framework,
         )
+        print(f"Updated prompt: {updated_prompt}")
         return {"updated_prompt": updated_prompt}
     except Exception as e:
         logger.error(f"An unexpected error occurred in /update_prompt: {e}", exc_info=True)

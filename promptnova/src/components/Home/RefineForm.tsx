@@ -64,8 +64,8 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
     };
 
     try {
-      // const response = await fetch('http://127.0.0.1:8000/update_prompt', {
-        const response = await fetch('https://promptnova.onrender.com/update_prompt', {
+      const response = await fetch('http://127.0.0.1:8000/update_prompt', {
+        // const response = await fetch('https://promptnova.onrender.com/update_prompt', {
 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -175,7 +175,7 @@ export const RefineForm: React.FC<RefineFormProps> = ({ originalPrompt, finalPro
           <div className="flex justify-end gap-4">
             <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Cancel</button>
             <button type="submit" disabled={isLoading} className="px-4 py-2 bg-gray-800 dark:bg-blue-600 text-white rounded-md flex items-center gap-2 disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'Refining...' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               {isLoading ? 'Refining...' : 'Refine'}
             </button>
           </div>
