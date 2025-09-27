@@ -80,7 +80,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading,
 
   if (error) {
     return (
-      <div className="mt-8 p-8 bg-red-50 dark:bg-red-950/20 rounded-lg shadow-md max-w-3xl mx-auto border border-red-200 dark:border-red-500/30 flex items-center">
+      <div className="my-8 p-8 bg-red-50 dark:bg-red-950/20 rounded-lg shadow-md max-w-3xl mx-auto border border-red-200 dark:border-red-500/30 flex items-center">
         <AlertTriangle className="h-8 w-8 text-red-500 dark:text-red-400" />
         <div className="ml-4">
           <p className="font-semibold text-red-700 dark:text-red-300">An error occurred:</p>

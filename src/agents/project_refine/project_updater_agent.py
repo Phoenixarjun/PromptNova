@@ -29,7 +29,7 @@ class ProjectUpdaterAgent(PromptAgent):
 
 **Instructions:**
 1.  Carefully analyze the 'Current Project Artifacts' and the 'Adjustments'.
-2.  Apply the 'Adjustments' to create an updated version of the project artifacts.
+2.  Apply the 'Adjustments' to create an updated version of the project artifacts dont change all the things just try to update the changes and return in the same format.
 3.  You MUST output ONLY the updated project artifacts as a single, raw JSON object.
 4.  The JSON object must contain the full 'architecture' and 'plan' keys, and all other original keys.
 {format_instructions}

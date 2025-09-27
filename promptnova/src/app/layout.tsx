@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "PromptNova",
   description: "AI Prompt Generator for Developers",
   icons: {
-    icon: "Icon.png",
+    icon: "/Icon.png",
   },
 };
 
