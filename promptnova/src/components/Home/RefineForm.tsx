@@ -100,7 +100,7 @@ export const RefineForm: React.FC<RefineFormProps> = ({
                 selected_model: selectedModel,
                 selected_groq_model: selectedGroqModel,
             };
-        } catch (err) {
+        } catch {
             setError("Failed to parse project artifacts. The format is invalid.");
             setIsLoading(false);
             return;

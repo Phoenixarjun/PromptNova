@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel, setSelectedMode
             setVerifiedPassword(pwd);
             document.cookie = `api_key_password_${selectedModel}=${pwd};max-age=${7 * 24 * 60 * 60};path=/;SameSite=Lax`;
             resetPrompt();
-        } catch (e) {
+        } catch {
             setPromptError("Decryption failed. The key might be corrupted or password is wrong.");
         }
     };
@@ -148,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel, setSelectedMode
             setApiKeyInput('');
             setIsEditing(true);
             resetPrompt();
-        } catch (e) {
+        } catch {
             setPromptError("Decryption failed. The key might be corrupted or password is wrong.");
         }
     };

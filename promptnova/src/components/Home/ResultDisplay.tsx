@@ -49,7 +49,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading,
             isProject: false,
           });
         }
-      } catch (e) {
+      } catch {
         // Fallback for when result is a non-JSON string that fails to parse
         setParsedResult({ refined_prompt: result, explanation: '', isProject: false });
       }

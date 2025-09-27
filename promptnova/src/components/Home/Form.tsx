@@ -66,7 +66,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const [projectParams, setProjectParams] = useState<ProjectParams>({});
   const [advancedParams, setAdvancedParams] = useState<AdvancedParams>({ types: {}, framework: {} });
   const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const [errorDialogContent, setErrorDialogContent] = useState({ message: '', rawResponse: '' });
+  const [errorDialogContent, _setErrorDialogContent] = useState({ message: '', rawResponse: '' });
 
   const visibleTypes = showAllTypes ? types : types.slice(0, 6);
   const visibleFrameworks = showAllFrameworks ? frameworks : frameworks.slice(0, 6);
@@ -108,7 +108,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         } else {
           setParsedPrompt(result); // Fallback to raw string
         }
-      } catch (e) {
+      } catch {
         setParsedPrompt(result); // Fallback if not JSON
       }
     } else {
