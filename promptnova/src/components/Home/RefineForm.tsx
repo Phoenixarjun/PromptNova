@@ -89,7 +89,7 @@ export const RefineForm: React.FC<RefineFormProps> = ({
 
 
     if (promptMode === 'project') {
-        endpoint = 'http://127.0.0.1:8000/project_update';
+        endpoint = 'https://promptnova.onrender.com/project_update';
         try {
             payload = {
                 original_user_prompt: originalPrompt,
@@ -106,7 +106,7 @@ export const RefineForm: React.FC<RefineFormProps> = ({
             return;
         }
     } else {
-        endpoint = 'http://127.0.0.1:8000/update_prompt';
+        endpoint = 'https://promptnova.onrender.com/update_prompt';
         payload = {
             original_prompt: originalPrompt,
             final_prompt: finalPrompt,

@@ -27,7 +27,10 @@ class ProjectPipeline:
     """A pipeline to generate a structured JSON prompt from a simple user idea."""
 
     def __init__(self, llm: Any):
-        self.max_iterations = 3
+        if "mistral" in getattr(llm, 'model_name', '').lower():
+            self.max_iterations = 1
+        else:
+            self.max_iterations = 3
         self.idea_agent = IdeaGenerationAgent(llm=llm)
         self.planner_agent = PlannerAgent(llm=llm)
         self.architect_agent = ArchitectAgent(llm=llm)
