@@ -1,6 +1,7 @@
 # 🚀 PromptNova – Your Open-Source AI Prompt Library
 
-![PromptNova Cover](placeholder-for-cover-image.png)
+<img width="1898" height="866" alt="image" src="https://github.com/user-attachments/assets/728ec65d-6968-4368-8819-579356c2e6f9" />
+
 
 > **Discover, Create, and Share.**  
 > PromptNova is an open-source platform to explore a universe of creative AI prompts, built for developers, writers, and creators to unlock the full potential of language models.
