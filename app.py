@@ -21,16 +21,17 @@ from langchain_mistralai import ChatMistralAI
 
 app = FastAPI(title="PromptNova API", description="API for refining prompts using multiple styles and a framework.")
 
+# Allow specific origins for local development and the Render backend itself.
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://promptnova.onrender.com",
-    "https://prompt-nova.vercel.app"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://prompt-nova(-[a-zA-Z0-9-]+)?\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
