@@ -12,7 +12,7 @@
 
 In the rapidly evolving world of AI, crafting the perfect prompt is an art form. While Large Language Models (LLMs) are incredibly powerful, most of us are unaware of the vast array of prompt engineering **types and frameworks** that exist.
 
-This leads to what I call **"Performance Under-Supply" (PUX)**—where we only tap into a fraction of an AI's true potential. PromptNova was built to solve this by providing a community-driven hub for discovering, creating, and sharing high-quality, structured prompts.
+This leads to **"Performance Under-Supply" (PUX)** where we only tap into a fraction of an AI's true potential. PromptNova was built to solve this by providing a community-driven hub for discovering, creating, and sharing high-quality, structured prompts.
 
 ---
 
