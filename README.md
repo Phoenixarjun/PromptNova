@@ -97,7 +97,7 @@ _User Profile - Your Collection_
 
 ## 🔗 Live Demo
 
-**🌍 [Visit PromptNova Now →](https://promptnova.vercel.app/)**  
+**🌍 [Visit PromptNova Now →]([https://promptnova.vercel.app/](https://prompt-nova.vercel.app/))**  
 Fully responsive. Works across devices.
 
 ---
