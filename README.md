@@ -81,23 +81,18 @@ Use the **Refine** feature to have an AI agent improve your existing prompts, ma
 
 ## 🖼️ Screenshots
 
-![HomePage](placeholder-for-homepage-image.png)
-_Home Page - Discover Prompts_
+<img width="1890" height="864" alt="image" src="https://github.com/user-attachments/assets/957e6a84-36aa-4341-9433-50001bddfc04" />
 
-![CreatePrompt](placeholder-for-create-prompt-image.png)
-_Create Prompt - Basic & Expert Modes_
 
-![GuidePage](placeholder-for-guide-image.png)
-_Prompting Guide - Learn Techniques_
+<img width="1886" height="862" alt="image" src="https://github.com/user-attachments/assets/d5e620db-afa0-48bb-bf47-7dc691109c33" />
 
-![ProfilePage](placeholder-for-profile-image.png)
-_User Profile - Your Collection_
+<img width="1886" height="862" alt="image" src="https://github.com/user-attachments/assets/1e836915-41d3-4939-be89-b530b993f485" />
 
 ---
 
 ## 🔗 Live Demo
 
-**🌍 [Visit PromptNova Now →]([https://promptnova.vercel.app/](https://prompt-nova.vercel.app/))**  
+**🌍 [Visit PromptNova Now →](https://prompt-nova.vercel.app/)**  
 Fully responsive. Works across devices.
 
 ---
