@@ -1,9 +1,12 @@
 from fastapi import FastAPI, HTTPException
-from src.models.prompt_schema import PromptSchema, UpdatePromptSchema, UpdateProjectSchema
+from src.models.prompt_schema import PromptSchema, UpdatePromptSchema, UpdateProjectSchema, PickAgentSchema
 from src.chains.pipeline import PromptPipeline
 from src.chains.project_pipeline import ProjectPipeline
 from src.chains.update_pipeline import UpdatePipeline
 from src.chains.project_update_pipeline import ProjectUpdatePipeline
+import re
+import json
+from src.agents.pick_agent import PickAgent
 from src.config import GOOGLE_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY
 from Crypto.Cipher import AES
 from Crypto.Hash import MD5
@@ -169,6 +172,30 @@ async def project_update_endpoint(update_input: UpdateProjectSchema):
     except Exception as e:
         logger.error(f"An unexpected error occurred in /project_update: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+
+@app.post("/pick_agent", response_model=dict)
+async def pick_agent_endpoint(pick_agent_input: PickAgentSchema) -> dict:
+    """
+    Selects prompt types and a framework based on user input.
+    """
+    try:
+        logger.info(pick_agent_input.user_input)
+        llm = get_llm(pick_agent_input)
+        # print(pick_agent_input)
+        agent = PickAgent(llm=llm)
+        result_str = agent.pick(pick_agent_input.user_input)
+        # print(result_str)
+        logger.info(result_str)
+        
+        json_match = re.search(r'\{[\s\S]*\}', result_str)
+        if not json_match:
+            raise ValueError("No valid JSON object found in the LLM's response.")
+        
+        return json.loads(json_match.group(0))
+    except Exception as e:
+        logger.error(f"Error picking agent: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error picking agent: {str(e)}")
+
 
 frontend_dir = Path("promptnova/out")
 

@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Info, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { Info, RefreshCw, Eye, EyeOff, Settings, Check, Sparkles, WandSparkles } from 'lucide-react';
 import CryptoJS from 'crypto-js';
 import { RefineForm } from './RefineForm';
 import { AdvancedOptions } from './AdvancedOptions';
@@ -12,7 +12,7 @@ import {
   Example,
   AdvancedParams,
   ValidationError,
-} from './form-details';
+} from '../../data/formConstants';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +23,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface ProjectParams {
   [key: string]: string;
@@ -61,12 +68,14 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const [reauthPassword, setReauthPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [parsedPrompt, setParsedPrompt] = useState('');
-  const [mode, setMode] = useState<'normal' | 'expert'>('normal');
+  const [settingMode, setSettingMode] = useState<'default' | 'expert' | 'expert+'>('default');
   const [promptMode, setPromptMode] = useState<'task' | 'project'>('task');
   const [projectParams, setProjectParams] = useState<ProjectParams>({});
   const [advancedParams, setAdvancedParams] = useState<AdvancedParams>({ types: {}, framework: {} });
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorDialogContent, _setErrorDialogContent] = useState({ message: '', rawResponse: '' });
+  const [isPicking, setIsPicking] = useState(false);
+  const [autoSelectMessage, setAutoSelectMessage] = useState<string | null>(null);
 
   const visibleTypes = showAllTypes ? types : types.slice(0, 6);
   const visibleFrameworks = showAllFrameworks ? frameworks : frameworks.slice(0, 6);
@@ -80,24 +89,31 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   }, []);
 
   useEffect(() => {
-    const matchingComboIndex = combos.findIndex((combo, index) => {
-      if (index === 0) return false;
-      const sortedComboTypes = [...combo.types].sort();
-      const sortedCurrentTypes = [...selectedTypes].sort();
-      
-      const typesMatch = sortedComboTypes.length === sortedCurrentTypes.length && 
-                         sortedComboTypes.every((t, i) => t === sortedCurrentTypes[i]);
-      
-      const frameworkMatch = combo.framework === selectedFramework;
-      
-      return typesMatch && frameworkMatch;
-    });
+    if (settingMode === 'default') {
+      const defaultCombo = combos.find(c => c.name === "Universal Adaptive Engine") || combos[1];
+      setSelectedTypes(defaultCombo.types);
+      setSelectedFramework(defaultCombo.framework);
+      setCurrentComboIndex(combos.indexOf(defaultCombo));
+    } else {
+      const matchingComboIndex = combos.findIndex((combo, index) => {
+        if (index === 0) return false;
+        const sortedComboTypes = [...combo.types].sort();
+        const sortedCurrentTypes = [...selectedTypes].sort();
+        
+        const typesMatch = sortedComboTypes.length === sortedCurrentTypes.length && 
+                          sortedComboTypes.every((t, i) => t === sortedCurrentTypes[i]);
+        
+        const frameworkMatch = combo.framework === selectedFramework;
+        
+        return typesMatch && frameworkMatch;
+      });
 
-    const newIndex = matchingComboIndex === -1 ? 0 : matchingComboIndex;
-    if (newIndex !== currentComboIndex) {
-      setCurrentComboIndex(newIndex);
+      const newIndex = matchingComboIndex === -1 ? 0 : matchingComboIndex;
+      if (newIndex !== currentComboIndex) {
+        setCurrentComboIndex(newIndex);
+      }
     }
-  }, [selectedTypes, selectedFramework, currentComboIndex]);
+  }, [selectedTypes, selectedFramework, currentComboIndex, settingMode]);
 
   useEffect(() => {
     if (result) {
@@ -117,12 +133,14 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   }, [result]);
 
   const handleTypeToggle = (slug: string) => {
+    setAutoSelectMessage(null);
     setSelectedTypes(prev =>
       prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
     );
   };
 
   const handleFrameworkSelect = (slug: string) => {
+    setAutoSelectMessage(null);
     setSelectedFramework(prev => (prev === slug ? null : slug));
   };
 
@@ -131,6 +149,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     const selectedCombo = combos[nextIndex];
     
     setCurrentComboIndex(nextIndex);
+    setAutoSelectMessage(null);
     setSelectedTypes(selectedCombo.types);
     setSelectedFramework(selectedCombo.framework);
   };
@@ -162,6 +181,62 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     }));
   };
 
+  const handlePickAgent = async () => {
+    if (!promptText.trim()) {
+      setError('Please enter a prompt first.');
+      return;
+    }
+    setIsPicking(true);
+    setError('');
+
+    const storageKey = getStorageKey(selectedModel);
+    const passwordCookieName = `api_key_password_${selectedModel}`;
+
+    const encryptedApiKey = localStorage.getItem(storageKey);
+    const password = getCookie(passwordCookieName);
+
+    if (encryptedApiKey && !password) {
+      setIsReauthenticating(true);
+      setIsPicking(false);
+      return;
+    }
+
+    const payload = {
+      user_input: promptText,
+      examples: examples.map(ex => ({ input: ex.input, output: ex.output })).filter(ex => ex.input && ex.output),
+      api_key: encryptedApiKey,
+      password: password,
+      selected_model: selectedModel,
+      selected_groq_model: selectedGroqModel,
+    };
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/pick_agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to get suggestions.');
+      }
+      const data = await response.json();
+      const selectedTypeNames = (data.types || []).map((slug: string) => types.find(t => t.slug === slug)?.name || slug);
+      const frameworkName = frameworks.find(f => f.slug === data.framework)?.name || data.framework;
+
+      if (selectedTypeNames.length > 0 && frameworkName) {
+        setAutoSelectMessage(`AI selected: ${selectedTypeNames.join(', ')} with the ${frameworkName} framework.`);
+      }
+      setSelectedTypes(data.types || []);
+      setSelectedFramework(data.framework || null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'An unknown error occurred.');
+    } finally {
+      setIsPicking(false);
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -181,9 +256,9 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     }
 
     let finalPromptText = promptText;
-    let endpoint = 'https://promptnova.onrender.com/refine';
+    let endpoint = 'http://127.0.0.1:8000/refine';
 
-    if (mode === 'expert') {
+    if (settingMode === 'expert+') {
       const cleanParams: AdvancedParams = { types: {}, framework: {} };
 
       if (advancedParams.types) {
@@ -216,7 +291,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
     if (promptMode === 'project') {
       endpoint = 'https://promptnova.onrender.com/project';
-      if (mode === 'expert') {
+      if (settingMode === 'expert+') {
         const cleanProjectParams = Object.fromEntries(Object.entries(projectParams).filter(([, v]) => v));
         finalPromptText = `Project Details:\n${JSON.stringify(cleanProjectParams, null, 2)}\n\n---\n\n${promptText}`;
       }
@@ -238,9 +313,8 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     };
 
     if (promptMode === 'project') {
-      // Override framework and style for project mode as per backend requirements
-      payload.framework = 'co_star'; // Use a valid default framework
-      payload.style = ['zero_shot']; // Use a valid default style
+      payload.framework = 'co_star'; 
+      payload.style = ['zero_shot']; 
     }
 
     try {
@@ -391,27 +465,31 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         promptMode={promptMode}
       />}
       <form onSubmit={handleSubmit}>
-        <div className="flex justify-center mb-6">
-          <div className="bg-gray-200 dark:bg-gray-800 p-1 rounded-lg flex">
-            <button
-              type="button"
-              onClick={() => setMode('normal')}
-              className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${
-                mode === 'normal' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow' : 'text-gray-600 dark:text-gray-400'
-              }`}
-            >
-              Normal
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('expert')}
-              className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${
-                mode === 'expert' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow' : 'text-gray-600 dark:text-gray-400'
-              }`}
-            >
-              Expert
-            </button>
+        <div className="relative flex justify-center items-center mb-6">
+          <div className="flex-1 flex justify-center">
+            <div className="bg-gray-200 dark:bg-gray-800 p-1 rounded-lg flex">
+              <button type="button" onClick={() => setPromptMode('task')} className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${promptMode === 'task' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow' : 'text-gray-600 dark:text-gray-400'}`}>
+                Task
+              </button>
+              <button type="button" onClick={() => setPromptMode('project')} className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${promptMode === 'project' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow' : 'text-gray-600 dark:text-gray-400'}`}>
+                Project
+              </button>
+            </div>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button type="button" className="p-2 text-gray-500 rounded-full dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700" aria-label="Settings">
+                <Settings className="h-5 w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuRadioGroup value={settingMode} onValueChange={(value) => setSettingMode(value as 'default' | 'expert' | 'expert+')}>
+                <DropdownMenuRadioItem value="default">Default</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="expert">Expert</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="expert+">Expert +</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="mb-6">
           <label htmlFor="prompt-input" className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
@@ -424,23 +502,45 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
             onChange={(e) => setPromptText(e.target.value)}
             placeholder="e.g., Generate a Python function to calculate Fibonacci sequence."
           />
-        </div>
-
-        <div className="flex justify-center mb-6">
-          <div className="bg-gray-200 dark:bg-gray-800 p-1 rounded-lg flex">
-            <button type="button" onClick={() => setPromptMode('task')} className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${promptMode === 'task' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow' : 'text-gray-600 dark:text-gray-400'}`}>
-              Task
-            </button>
-            <button type="button" onClick={() => setPromptMode('project')} className={`px-6 py-2 text-sm font-medium rounded-md transition-colors ${promptMode === 'project' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow' : 'text-gray-600 dark:text-gray-400'}`}>
-              Project
+          <div className="mt-2 flex justify-end">
+            <button type="button" onClick={handlePickAgent} disabled={isPicking} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
+              {isPicking ? (
+                <WandSparkles className="h-4 w-4 animate-pulse" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              {isPicking ? 'Thinking...' : 'Auto-Select Strategy'}
             </button>
           </div>
         </div>
 
-        {/* Scenarios 1 & 2: Normal + Task and Expert + Task */}
-        {promptMode === 'task' && (
+        {promptMode === 'task' && settingMode === 'default' && (
+          <div className={`p-4 my-6 text-sm text-center rounded-lg border transition-colors duration-300 ${
+            autoSelectMessage
+              ? 'text-green-700 bg-green-100 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-500/30'
+              : 'text-blue-700 bg-blue-100 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-500/30'
+          }`}>
+            {autoSelectMessage ? (
+              <>
+                <p className="font-semibold">Strategy Auto-Selected!</p>
+                <p className="mt-1">{autoSelectMessage}</p>
+              </>
+            ) : (
+              <>
+                <p className="font-semibold">Current Mode: Default</p>
+                <p className="mt-1">
+                  Using the "{combos.find(c => c.name === "Universal Adaptive Engine")?.name || combos[1].name}" strategy. 
+                  Switch to Expert or Expert+ via the settings icon for more options.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Scenarios for Expert and Expert+ modes */}
+        {(settingMode === 'expert' || settingMode === 'expert+') && promptMode === 'task' && (
           <>
-            {mode === 'expert' && (
+            {settingMode === 'expert+' && (
               <AdvancedOptions
                 selectedTypes={selectedTypes}
                 selectedFramework={selectedFramework}
@@ -639,14 +739,14 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         )}
 
         {/* Scenario 3: Normal + Project */}
-        {promptMode === 'project' && mode === 'normal' && (
+        {promptMode === 'project' && (settingMode === 'default' || settingMode === 'expert') && (
           <div className="p-4 my-6 text-sm text-center text-blue-700 bg-blue-100 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-500/30">
             <p>For Project mode, the prompt will be automatically structured as JSON. Just describe your project requirements above.</p>
           </div>
         )}
 
         {/* Scenario 4: Expert + Project */}
-        {promptMode === 'project' && mode === 'expert' && (
+        {promptMode === 'project' && settingMode === 'expert+' && (
           <div className="mb-6 space-y-4">
             <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Project Details</h2>
             {Object.entries(projectParamsSchema).map(([key, { label, description }]) => (

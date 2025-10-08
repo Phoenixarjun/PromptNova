@@ -64,3 +64,12 @@ class UpdateProjectSchema(BaseModel):
             except json.JSONDecodeError:
                 raise ValueError("project_artifacts must be a valid JSON string or a dictionary.")
         return v
+
+class PickAgentSchema(BaseModel):
+    """Pydantic model for the /pick_agent endpoint."""
+    user_input: str
+    examples: Optional[List[Dict[str, str]]] = []
+    api_key: Optional[str] = None
+    password: Optional[str] = None
+    selected_model: str
+    selected_groq_model: Optional[str] = None

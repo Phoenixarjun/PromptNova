@@ -1,5 +1,5 @@
 import React from 'react';
-import { advancedTypeOptions, advancedFrameworkOptions, Field } from './advancedOptionsConfig';
+import { advancedTypeOptions, advancedFrameworkOptions, Field } from '../../data/advancedOptionsConfig';
 
 // Define a more specific type for advanced parameters
 interface AdvancedParams {
