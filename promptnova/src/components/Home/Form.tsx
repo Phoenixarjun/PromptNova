@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Info, RefreshCw, Eye, EyeOff, Settings, Check, Sparkles, WandSparkles } from 'lucide-react';
+import { Info, RefreshCw, Eye, EyeOff, Settings, Sparkles, WandSparkles } from 'lucide-react';
 import CryptoJS from 'crypto-js';
 import { RefineForm } from './RefineForm';
 import { AdvancedOptions } from './AdvancedOptions';
@@ -73,6 +73,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const [projectParams, setProjectParams] = useState<ProjectParams>({});
   const [advancedParams, setAdvancedParams] = useState<AdvancedParams>({ types: {}, framework: {} });
   const [showErrorDialog, setShowErrorDialog] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [errorDialogContent, _setErrorDialogContent] = useState({ message: '', rawResponse: '' });
   const [isPicking, setIsPicking] = useState(false);
   const [autoSelectMessage, setAutoSelectMessage] = useState<string | null>(null);
@@ -502,15 +503,18 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
             onChange={(e) => setPromptText(e.target.value)}
             placeholder="e.g., Generate a Python function to calculate Fibonacci sequence."
           />
-          <div className="mt-2 flex justify-end">
-            <button type="button" onClick={handlePickAgent} disabled={isPicking} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
-              {isPicking ? (
-                <WandSparkles className="h-4 w-4 animate-pulse" />
-              ) : (
-                <Sparkles className="h-4 w-4" />
-              )}
-              {isPicking ? 'Thinking...' : 'Auto-Select Strategy'}
-            </button>
+            <div className="mt-2 flex justify-end">
+                { promptMode === 'task' && (
+                <button type="button" onClick={handlePickAgent} disabled={isPicking} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
+                  {isPicking ? (
+                    <WandSparkles className="h-4 w-4 animate-pulse" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  {isPicking ? 'Thinking...' : 'Auto-Select Strategy'}
+                </button>
+            )}
+
           </div>
         </div>
 
@@ -529,7 +533,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
               <>
                 <p className="font-semibold">Current Mode: Default</p>
                 <p className="mt-1">
-                  Using the "{combos.find(c => c.name === "Universal Adaptive Engine")?.name || combos[1].name}" strategy. 
+                  Using the &quot;{combos.find(c => c.name === "Universal Adaptive Engine")?.name || combos[1].name}&quot; strategy. 
                   Switch to Expert or Expert+ via the settings icon for more options.
                 </p>
               </>
