@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from src.models.prompt_schema import PromptSchema, UpdatePromptSchema, UpdateProjectSchema, PickAgentSchema
+from src.models.evaluateSchema import EvaluatePipelineInput, FullEvaluationResult
 from src.chains.pipeline import PromptPipeline
 from src.chains.project_pipeline import ProjectPipeline
 from src.chains.update_pipeline import UpdatePipeline
 from src.chains.project_update_pipeline import ProjectUpdatePipeline
+from src.chains.evaluate_pipleline import EvaluatePipeline
 import re
 import json
 from src.agents.pick_agent import PickAgent
@@ -196,6 +198,19 @@ async def pick_agent_endpoint(pick_agent_input: PickAgentSchema) -> dict:
         logger.error(f"Error picking agent: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error picking agent: {str(e)}")
 
+@app.post("/evaluate", response_model=FullEvaluationResult)
+async def evaluate_prompt_endpoint(eval_input: EvaluatePipelineInput):
+    """
+    Evaluates a given prompt using a multi-agent framework.
+    """
+    try:
+        llm = get_llm(eval_input)
+        pipeline = EvaluatePipeline(llm=llm)
+        result = await pipeline.run(eval_input)
+        return result
+    except Exception as e:
+        logger.error(f"Error evaluating prompt: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error evaluating prompt: {str(e)}")
 
 frontend_dir = Path("promptnova/out")
 

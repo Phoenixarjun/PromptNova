@@ -10,7 +10,7 @@ import json
 class ProjectUpdateState(TypedDict):
     """Represents the state of the project update workflow."""
     original_user_prompt: str
-    project_artifacts: Dict  # This contains the artifacts being iteratively refined
+    project_artifacts: Dict  
     user_feedback: str
     suggestions: Optional[ReviewSuggestions]
     evaluation: Optional[Dict]
