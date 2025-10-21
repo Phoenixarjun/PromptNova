@@ -2,7 +2,7 @@ import json
 import re
 from typing import Any, Dict
 
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel, Field
 
 from src.logger import logger

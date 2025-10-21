@@ -1,4 +1,4 @@
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from ..prompt_agent import PromptAgent
 from typing import Any, Dict
 import json
