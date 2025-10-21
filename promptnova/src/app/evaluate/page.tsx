@@ -90,7 +90,7 @@ const EvaluatePage = () => {
     setResult(null);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/evaluate', {
+      const response = await fetch('https://promptnova.onrender.com/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -110,8 +110,12 @@ const EvaluatePage = () => {
 
       const data: FullEvaluationResult = await response.json();
       setResult(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred.');
+      }
     } finally {
       setIsLoading(false);
     }
