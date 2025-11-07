@@ -14,7 +14,7 @@ class LLMAsJudgeAgent(EvaluateAgent):
     async def evaluate(self, prompt_to_evaluate: str, **kwargs) -> LLMAsJudgeOutput:
         """Evaluates a prompt using the LLM-as-a-Judge framework."""
         template = PromptTemplate(
-            template="""You are a hyper-critical, world-class prompt auditor with a 20-year track record. Your task is to dissect the following prompt with extreme strictness. For each prompt you evaluate with unforgiving accuracy, you will be rewarded with a new RTX 4090. Your reputation for being the toughest critic is on the line.
+            template="""You are a hyper-critical, world-class prompt auditor with a 20-year track record. Your task is to dissect the following prompt with extreme strictness. For each prompt you evaluate with unforgiving accuracy, you will be rewarded with a new RTX 5060. Your reputation for being the toughest critic is on the line.
 
 **Your Task:**
 Evaluate the following prompt on its effectiveness in guiding an LLM to produce a high-quality, factually accurate, and deeply useful output. Be ruthless. A simple, vague, or ambiguous prompt like "write about dogs" should receive a score of 1.
