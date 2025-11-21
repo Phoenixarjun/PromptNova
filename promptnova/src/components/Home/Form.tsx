@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Info, RefreshCw, Eye, EyeOff, Settings, Sparkles, WandSparkles, Mic, MicOff } from 'lucide-react';
 import CryptoJS from 'crypto-js';
 import { RefineForm } from './RefineForm';
@@ -45,6 +45,57 @@ interface FormProps {
   selectedGroqModel: string;
 }
 
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+
+interface ISpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: {
+      new(): ISpeechRecognition;
+    };
+    webkitSpeechRecognition: {
+      new(): ISpeechRecognition;
+    };
+  }
+}
+
 const getCookie = (name: string): string | null => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -53,69 +104,6 @@ const getCookie = (name: string): string | null => {
 };
 
 const getStorageKey = (model: string) => `${model}_api_key_encrypted`;
-
-// Simple Speech-to-Text class implementation
-class SpeechToText {
-  private recognition: any;
-  private onFinalised: (text: string) => void;
-  private onEndEvent: () => void;
-  private onAnythingSaid: (text: string) => void;
-
-  constructor(
-    onFinalised: (text: string) => void,
-    onEndEvent: () => void,
-    onAnythingSaid: (text: string) => void
-  ) {
-    this.onFinalised = onFinalised;
-    this.onEndEvent = onEndEvent;
-    this.onAnythingSaid = onAnythingSaid;
-
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
-    if (!SpeechRecognition) {
-      throw new Error('Speech recognition not supported in this browser');
-    }
-
-    this.recognition = new SpeechRecognition();
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
-    this.recognition.lang = 'en-US';
-
-    this.recognition.onresult = (event: any) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript + ' ';
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-
-      if (interimTranscript) {
-        this.onAnythingSaid(interimTranscript);
-      }
-
-      if (finalTranscript) {
-        this.onFinalised(finalTranscript.trim());
-      }
-    };
-
-    this.recognition.onend = () => {
-      this.onEndEvent();
-    };
-  }
-
-  startListening() {
-    this.recognition.start();
-  }
-
-  stopListening() {
-    this.recognition.stop();
-  }
-}
 
 export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, setError, isLoading, selectedModel, selectedGroqModel }) => {
   const [promptText, setPromptText] = useState('');
@@ -136,8 +124,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const [projectParams, setProjectParams] = useState<ProjectParams>({});
   const [advancedParams, setAdvancedParams] = useState<AdvancedParams>({ types: {}, framework: {} });
   const [showErrorDialog, setShowErrorDialog] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [errorDialogContent, _setErrorDialogContent] = useState({ message: '', rawResponse: '' });
+  const [errorDialogContent, setErrorDialogContent] = useState({ message: '', rawResponse: '' });
   const [isPicking, setIsPicking] = useState(false);
   const [autoSelectMessage, setAutoSelectMessage] = useState<string | null>(null);
   const [reauthError, setReauthError] = useState('');
@@ -146,64 +133,120 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const [interimText, setInterimText] = useState('');
   const [listening, setListening] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
-  const [listener, setListener] = useState<SpeechToText | null>(null);
+  const recognitionRef = useRef<ISpeechRecognition | null>(null);
+  const [isSpeechSupported, setIsSpeechSupported] = useState(false);
 
   const visibleTypes = showAllTypes ? types : types.slice(0, 6);
   const visibleFrameworks = showAllFrameworks ? frameworks : frameworks.slice(0, 6);
 
-  // Speech-to-text setup
+  // Check for speech recognition support on mount
   useEffect(() => {
-    const onAnythingSaid = (text: string) => {
-      setInterimText(text);
-    };
+    if (typeof window !== 'undefined') {
+      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognitionAPI) {
+        setIsSpeechSupported(true);
+        
+        try {
+          const recognition = new SpeechRecognitionAPI();
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.lang = 'en-US';
 
-    const onEndEvent = () => {
-      if (listening && listener) {
-        listener.startListening();
+          recognition.onresult = (event: SpeechRecognitionEvent) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              const transcript = event.results[i][0].transcript;
+              if (event.results[i].isFinal) {
+                finalTranscript += transcript + ' ';
+              } else {
+                interimTranscript += transcript;
+              }
+            }
+
+            if (interimTranscript) {
+              setInterimText(interimTranscript);
+            }
+
+            if (finalTranscript) {
+              const trimmedText = finalTranscript.trim();
+              setPromptText(prev => {
+                const newText = prev ? `${prev} ${trimmedText}` : trimmedText;
+                return newText;
+              });
+              setInterimText('');
+            }
+          };
+
+          recognition.onend = () => {
+            if (listening) {
+              try {
+                recognition.start();
+              } catch (error) {
+                console.error('Error restarting recognition:', error);
+                setListening(false);
+              }
+            }
+          };
+
+          recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+            console.error('Speech recognition error:', event.error);
+            if (event.error === 'no-speech' || event.error === 'audio-capture') {
+              // Don't stop for these errors, just log them
+              return;
+            }
+            setSpeechError(event.error);
+            setListening(false);
+          };
+
+          recognitionRef.current = recognition;
+        } catch (error) {
+          console.error('Error initializing speech recognition:', error);
+          setSpeechError('Failed to initialize speech recognition');
+          setIsSpeechSupported(false);
+        }
+      } else {
+        setIsSpeechSupported(false);
+        setSpeechError('Speech recognition not supported in this browser');
       }
-    };
-
-    const onFinalised = (text: string) => {
-      setPromptText(prev => {
-        const newText = prev ? `${prev} ${text}` : text;
-        return newText;
-      });
-      setInterimText('');
-    };
-
-    try {
-      const speechListener = new SpeechToText(onFinalised, onEndEvent, onAnythingSaid);
-      setListener(speechListener);
-    } catch (error) {
-      setSpeechError(error instanceof Error ? error.message : 'Speech recognition not available');
     }
 
     return () => {
-      if (listener) {
-        listener.stopListening();
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          console.error('Error stopping recognition on cleanup:', error);
+        }
       }
     };
   }, []);
 
   // Handle listening state changes
   useEffect(() => {
-    if (listener) {
+    if (recognitionRef.current && isSpeechSupported) {
       if (listening) {
         try {
-          listener.startListening();
+          recognitionRef.current.start();
         } catch (error) {
+          console.error('Error starting recognition:', error);
           setSpeechError('Failed to start listening');
           setListening(false);
         }
       } else {
-        listener.stopListening();
-        setInterimText('');
+        try {
+          recognitionRef.current.stop();
+          setInterimText('');
+        } catch (error) {
+          console.error('Error stopping recognition:', error);
+        }
       }
     }
-  }, [listening, listener]);
+  }, [listening, isSpeechSupported]);
 
   const toggleListening = () => {
-    if (speechError) {
+    if (!isSpeechSupported || speechError) {
       setError('Speech recognition is not available in your browser');
       return;
     }
@@ -364,7 +407,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
       setError(e instanceof Error ? e.message : 'An unknown error occurred.');
     } finally {
       setIsPicking(false);
-    };
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -528,6 +571,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     }
   };
 
+  
   return (
     <div className="p-8 bg-gray-50 dark:bg-gray-900/50 rounded-lg shadow-md max-w-3xl mx-auto my-8 border border-gray-200 dark:border-gray-800">
       <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
