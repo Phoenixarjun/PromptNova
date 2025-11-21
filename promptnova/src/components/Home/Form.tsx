@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Info, RefreshCw, Eye, EyeOff, Settings, Sparkles, WandSparkles } from 'lucide-react';
+import { Info, RefreshCw, Eye, EyeOff, Settings, Sparkles, WandSparkles, Mic, MicOff } from 'lucide-react';
 import CryptoJS from 'crypto-js';
 import { RefineForm } from './RefineForm';
 import { AdvancedOptions } from './AdvancedOptions';
@@ -54,6 +54,69 @@ const getCookie = (name: string): string | null => {
 
 const getStorageKey = (model: string) => `${model}_api_key_encrypted`;
 
+// Simple Speech-to-Text class implementation
+class SpeechToText {
+  private recognition: any;
+  private onFinalised: (text: string) => void;
+  private onEndEvent: () => void;
+  private onAnythingSaid: (text: string) => void;
+
+  constructor(
+    onFinalised: (text: string) => void,
+    onEndEvent: () => void,
+    onAnythingSaid: (text: string) => void
+  ) {
+    this.onFinalised = onFinalised;
+    this.onEndEvent = onEndEvent;
+    this.onAnythingSaid = onAnythingSaid;
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      throw new Error('Speech recognition not supported in this browser');
+    }
+
+    this.recognition = new SpeechRecognition();
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+    this.recognition.lang = 'en-US';
+
+    this.recognition.onresult = (event: any) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      if (interimTranscript) {
+        this.onAnythingSaid(interimTranscript);
+      }
+
+      if (finalTranscript) {
+        this.onFinalised(finalTranscript.trim());
+      }
+    };
+
+    this.recognition.onend = () => {
+      this.onEndEvent();
+    };
+  }
+
+  startListening() {
+    this.recognition.start();
+  }
+
+  stopListening() {
+    this.recognition.stop();
+  }
+}
+
 export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, setError, isLoading, selectedModel, selectedGroqModel }) => {
   const [promptText, setPromptText] = useState('');
   const [examples, setExamples] = useState<Example[]>([]);
@@ -77,9 +140,75 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const [errorDialogContent, _setErrorDialogContent] = useState({ message: '', rawResponse: '' });
   const [isPicking, setIsPicking] = useState(false);
   const [autoSelectMessage, setAutoSelectMessage] = useState<string | null>(null);
+  const [reauthError, setReauthError] = useState('');
+
+  // Speech-to-text states
+  const [interimText, setInterimText] = useState('');
+  const [listening, setListening] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
+  const [listener, setListener] = useState<SpeechToText | null>(null);
 
   const visibleTypes = showAllTypes ? types : types.slice(0, 6);
   const visibleFrameworks = showAllFrameworks ? frameworks : frameworks.slice(0, 6);
+
+  // Speech-to-text setup
+  useEffect(() => {
+    const onAnythingSaid = (text: string) => {
+      setInterimText(text);
+    };
+
+    const onEndEvent = () => {
+      if (listening && listener) {
+        listener.startListening();
+      }
+    };
+
+    const onFinalised = (text: string) => {
+      setPromptText(prev => {
+        const newText = prev ? `${prev} ${text}` : text;
+        return newText;
+      });
+      setInterimText('');
+    };
+
+    try {
+      const speechListener = new SpeechToText(onFinalised, onEndEvent, onAnythingSaid);
+      setListener(speechListener);
+    } catch (error) {
+      setSpeechError(error instanceof Error ? error.message : 'Speech recognition not available');
+    }
+
+    return () => {
+      if (listener) {
+        listener.stopListening();
+      }
+    };
+  }, []);
+
+  // Handle listening state changes
+  useEffect(() => {
+    if (listener) {
+      if (listening) {
+        try {
+          listener.startListening();
+        } catch (error) {
+          setSpeechError('Failed to start listening');
+          setListening(false);
+        }
+      } else {
+        listener.stopListening();
+        setInterimText('');
+      }
+    }
+  }, [listening, listener]);
+
+  const toggleListening = () => {
+    if (speechError) {
+      setError('Speech recognition is not available in your browser');
+      return;
+    }
+    setListening(prev => !prev);
+  };
 
   useEffect(() => {
     const handleShowRefineModal = () => setShowRefineModal(true);
@@ -123,10 +252,10 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         if (parsed && parsed.refined_prompt) {
           setParsedPrompt(parsed.refined_prompt);
         } else {
-          setParsedPrompt(result); // Fallback to raw string
+          setParsedPrompt(result);
         }
       } catch {
-        setParsedPrompt(result); // Fallback if not JSON
+        setParsedPrompt(result);
       }
     } else {
       setParsedPrompt('');
@@ -320,7 +449,6 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
 
     try {
       const response = await fetch(endpoint, {
-
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -368,17 +496,15 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
   const handleReauthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reauthPassword) {
-        setError('Password cannot be empty.');
+        setReauthError('Password cannot be empty.');
         return;
     }
-    setIsLoading(true);
-    setError('');
+    setReauthError('');
 
     const storageKey = getStorageKey(selectedModel);
     const encryptedKey = localStorage.getItem(storageKey);
     if (!encryptedKey) {
-        setError("Encrypted key not found. Please save it again in Settings.");
-        setIsLoading(false);
+        setReauthError("Encrypted key not found. Please save it again in Settings.");
         return;
     }
 
@@ -395,11 +521,10 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
         
         setIsReauthenticating(false);
         setReauthPassword('');
-        await handleSubmit(e);
+        setReauthError('');
 
     } catch {
-        setError("Decryption failed. Incorrect password.");
-        setIsLoading(false);
+        setReauthError("Incorrect password. Please try again.");
     }
   };
 
@@ -443,11 +568,11 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
                             </button>
                         </div>
                     </div>
+                    {reauthError && <p className="text-red-500 text-sm mb-4">{reauthError}</p>}
                     <div className="flex justify-end gap-4">
                         <button type="button" onClick={() => setIsReauthenticating(false)} className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Cancel</button>
-                        <button type="submit" disabled={isLoading} className="px-4 py-2 bg-gray-800 dark:bg-blue-600 text-white rounded-md flex items-center gap-2 disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
-                            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                            {isLoading ? 'Verifying...' : 'Confirm & Generate'}
+                        <button type="submit" className="px-4 py-2 bg-gray-800 dark:bg-blue-600 text-white rounded-md flex items-center gap-2 hover:bg-gray-700 dark:hover:bg-blue-700 transition-colors">
+                            Verify Password
                         </button>
                     </div>
                 </form>
@@ -493,33 +618,67 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
           </DropdownMenu>
         </div>
         <div className="mb-6">
-          <label htmlFor="prompt-input" className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
-            Enter Your Prompt
-          </label>
-          <textarea
-            id="prompt-input"
-            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 resize-y min-h-[120px]"
-            value={promptText}
-            onChange={(e) => setPromptText(e.target.value)}
-            placeholder="e.g., Generate a Python function to calculate Fibonacci sequence."
-          />
-            <div className="mt-2 flex justify-end">
-                { promptMode === 'task' && (
-                <button type="button" onClick={handlePickAgent} disabled={isPicking} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  {isPicking ? (
-                    <WandSparkles className="h-4 w-4 animate-pulse" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                  {isPicking ? 'Thinking...' : 'Auto-Select Strategy'}
-                </button>
+          <div className="flex items-center justify-between mb-2">
+            <label htmlFor="prompt-input" className="block text-gray-700 dark:text-gray-300 text-sm font-semibold">
+              Enter Your Prompt
+            </label>
+            <button
+              type="button"
+              onClick={toggleListening}
+              disabled={!!speechError}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                listening 
+                  ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50' 
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              } ${speechError ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title={speechError || (listening ? 'Stop recording' : 'Start voice input')}
+            >
+              {listening ? (
+                <MicOff className="h-5 w-5 animate-pulse" />
+              ) : (
+                <Mic className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+          <div className="relative">
+            <textarea
+              id="prompt-input"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 resize-y min-h-[120px]"
+              value={promptText + (interimText ? ` ${interimText}` : '')}
+              onChange={(e) => setPromptText(e.target.value)}
+              placeholder="e.g., Generate a Python function to calculate Fibonacci sequence."
+            />
+            {listening && (
+              <div className="absolute top-2 right-2 flex items-center gap-2 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs font-medium">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                Recording...
+              </div>
             )}
-
+          </div>
+          {interimText && (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 italic">
+              Listening: {interimText}
+            </p>
+          )}
+          <div className="mt-2 flex justify-end">
+            {promptMode === 'task' && (
+              <button type="button" onClick={handlePickAgent} disabled={isPicking} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
+                {isPicking ? (
+                  <WandSparkles className="h-4 w-4 animate-pulse" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                {isPicking ? 'Thinking...' : 'Auto-Select Strategy'}
+              </button>
+            )}
           </div>
         </div>
 
         {promptMode === 'task' && settingMode === 'default' && (
-          <div className={`p-4 my-6 text-sm text-center rounded-lg border transition-colors duration-300 ${
+          <div className={`p-4 my-6 text-sm text-center rounded-lg border transition -colors duration-300 ${
             autoSelectMessage
               ? 'text-green-700 bg-green-100 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-500/30'
               : 'text-blue-700 bg-blue-100 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-500/30'

@@ -152,7 +152,7 @@ const EvaluatePage = () => {
         
         setIsReauthenticating(false);
         setReauthPassword('');
-        await handleSubmit(e);
+        // await handleSubmit(e);
 
     } catch {
         setError("Decryption failed. Incorrect password.");
