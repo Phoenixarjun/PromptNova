@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 import { Loader2, AlertTriangle, Copy, Check, Info } from 'lucide-react';
 import { MarkdownRenderer } from '../Home/MarkdownRenderer';
 
-interface Evaluation {
+export interface Evaluation {
   success: boolean;
   reason?: string;
   final_polish_needed?: string;
 }
 
-interface ProjectManiaMetadata {
+export interface ProjectManiaMetadata {
   refinement_history?: { evaluation: Evaluation }[];
   template_type?: 'general' | 'crewai' | 'autogen';
 }

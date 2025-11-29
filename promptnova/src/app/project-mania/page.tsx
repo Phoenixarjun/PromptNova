@@ -5,13 +5,13 @@ import Footer from '@/components/Footer';
 import { ProjectManiaForm } from '@/components/ProjectMania/Form';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { ProjectManiaResultDisplay } from '@/components/ProjectMania/ProjectManiaResultDisplay';
+import { ProjectManiaResultDisplay, ProjectManiaMetadata } from '@/components/ProjectMania/ProjectManiaResultDisplay';
 import { Sidebar } from '@/components/Home/Sidebar';
 import Navbar from '@/components/Navbar';
 
 export default function ProjectManiaPage() {
   const [result, setResult] = useState('');
-  const [metadata, setMetadata] = useState<Record<string, unknown> | null>(null);
+  const [metadata, setMetadata] = useState<ProjectManiaMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedModel, setSelectedModel] = useState('gemini');
@@ -66,7 +66,7 @@ export default function ProjectManiaPage() {
             <div className="mt-8">
               <ProjectManiaResultDisplay 
                 result={result} 
-                metadata={metadata} 
+                metadata={metadata || undefined} 
                 isLoading={isLoading} 
                 error={error} 
                 templateType={templateType}

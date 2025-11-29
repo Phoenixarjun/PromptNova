@@ -10,9 +10,11 @@ import { Label } from '../ui/label';
 import { FormField } from '../evaluate/FormField';
 import CryptoJS from 'crypto-js';
 
+import { ProjectManiaMetadata } from './ProjectManiaResultDisplay';
+
 interface ProjectManiaFormProps {
   setResult: (result: string) => void;
-  setMetadata: (metadata: Record<string, unknown> | null) => void;
+  setMetadata: (metadata: ProjectManiaMetadata | null) => void;
   setIsLoading: (loading: boolean) => void;
   setError: (error: string) => void;
   isLoading: boolean;
