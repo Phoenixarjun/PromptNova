@@ -11,7 +11,7 @@ import Navbar from '@/components/Navbar';
 
 export default function ProjectManiaPage() {
   const [result, setResult] = useState('');
-  const [metadata, setMetadata] = useState<any>(null);
+  const [metadata, setMetadata] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedModel, setSelectedModel] = useState('gemini');
