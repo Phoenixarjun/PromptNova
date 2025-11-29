@@ -21,14 +21,16 @@ class FinalPrompt(PromptAgent):
     def __init__(self, llm: Any):
         super().__init__(llm)
         self.evaluator = UpdateEvaluator(llm)
-        # Wrap LLM with structured output for models that support it
+
         self.structured_llm = llm.with_structured_output(PromptOutput)
 
     async def refine(self, user_input: str, **kwargs) -> Dict[str, str]:
         refined_responses = kwargs.get("refined_responses", {})
         type_prompts = kwargs.get("type_prompts", {})
+
         if not refined_responses and not type_prompts:
             raise ValueError("No refined or type prompts provided for integration.")
+
         return await self.integrate(user_input=user_input, **kwargs)
 
     async def integrate(self, user_input: str, **kwargs) -> Dict[str, str]:
@@ -43,12 +45,14 @@ class FinalPrompt(PromptAgent):
         if not framework_response:
             framework_response = next(iter(refined_responses.values()), "")
 
-        # Sanitize inputs to remove any code fences
         framework_response = re.sub(r'```[a-zA-Z]*\n?|```', '', framework_response)
-        type_prompts_str = json.dumps(type_prompts, indent=2)
-        type_prompts_str = re.sub(r'```[a-zA-Z]*\n?|```', '', type_prompts_str)
+        type_prompts_str = re.sub(
+            r'```[a-zA-Z]*\n?|```',
+            '',
+            json.dumps(type_prompts, indent=2)
+        )
 
-        # Base template content
+
         base_template = f'''
 You are a world-class prompt engineer with 20+ years of experience. Your task is to synthesize a final, refined, and actionable prompt.
 
@@ -73,20 +77,10 @@ You are a world-class prompt engineer with 20+ years of experience. Your task is
 {{user_input}}
 '''
 
-        # Model-specific output instructions
-        if selected_model.lower() == "groq":
-            output_instructions = '''
+        output_instructions = '''
 **Output Format:**
 Respond ONLY with a valid JSON object.
 Do NOT include any Markdown code fences.
-Your JSON object must have exactly two keys:
-- "refined_prompt": string containing the complete final prompt
-- "explanation": string explaining the improvements
-'''
-        else:
-            output_instructions = '''
-**Output Format:**
-Respond ONLY with a valid JSON object enclosed in ```json```.
 Your JSON object must have exactly two keys:
 - "refined_prompt": string containing the complete final prompt
 - "explanation": string explaining the improvements
@@ -95,14 +89,20 @@ Your JSON object must have exactly two keys:
         final_template = base_template + output_instructions
 
         integration_template = PromptTemplate(
-            input_variables=["framework_response", "type_prompts", "user_input", "framework"],
+            input_variables=[
+                "framework_response",
+                "type_prompts",
+                "user_input",
+                "framework"
+            ],
             template=final_template
         )
 
         response: PromptOutput
 
         if selected_model.lower() == "groq":
-            logger.info("Using Groq model (no JSON fences)...")
+            logger.info("Using Groq model (manual JSON parsing)...")
+
             chain = integration_template | self.llm
             response_content = await chain.ainvoke({
                 "framework_response": framework_response,
@@ -111,33 +111,53 @@ Your JSON object must have exactly two keys:
                 "framework": framework
             })
 
-            raw_json_str = getattr(response_content, "content", str(response_content)).strip()
-            raw_json_str = re.sub(r'```json|```', '', raw_json_str).strip()
+            raw_json = getattr(response_content, "content", str(response_content)).strip()
+
+            raw_json = re.sub(r'```json|```', '', raw_json).strip()
 
             try:
-                response_data = json.loads(raw_json_str)
-                response = PromptOutput(**response_data)
-            except (json.JSONDecodeError, TypeError) as e:
-                logger.error(f"Failed to parse Groq JSON: {e}")
-                logger.error(f"Raw response: {raw_json_str}")
+                parsed = json.loads(raw_json)
+                response = PromptOutput(**parsed)
+            except Exception as e:
+                logger.error(f"Groq JSON Parse Failed: {e}")
+                logger.error(f"Raw Output: {raw_json}")
+
                 return {
-                    "refined_prompt": "Error: Could not parse model output.",
-                    "explanation": f"The Groq model returned malformed JSON. Raw output: {raw_json_str}"
+                    "refined_prompt": user_input,
+                    "explanation": "Groq returned malformed JSON. Returned original prompt."
                 }
+
         else:
             logger.info("Using structured output model...")
+
             chain = integration_template | self.structured_llm
-            response = await chain.ainvoke({
-                "framework_response": framework_response,
-                "type_prompts": type_prompts_str,
-                "user_input": user_input,
-                "framework": framework
-            })
+
+            try:
+                response = await chain.ainvoke({
+                    "framework_response": framework_response,
+                    "type_prompts": type_prompts_str,
+                    "user_input": user_input,
+                    "framework": framework
+                })
+            except Exception as e:
+                logger.error(f"Structured output model failed: {e}")
+                return {
+                    "refined_prompt": user_input,
+                    "explanation": "Structured output model failed. Returned original prompt."
+                }
+
+            if not response or not hasattr(response, "refined_prompt"):
+                logger.error("Structured output invalid or None.")
+                return {
+                    "refined_prompt": user_input,
+                    "explanation": "Model returned invalid structured output. Returned original prompt."
+                }
+
 
         refined_prompt = response.refined_prompt.strip()
         explanation = response.explanation.strip()
 
-        # Self-evaluation
+
         evaluation_result = self.evaluator.evaluate(
             user_prompt=user_input,
             generated_prompt=refined_prompt,
@@ -147,15 +167,15 @@ Your JSON object must have exactly two keys:
         )
 
         if evaluation_result is None:
-            explanation += "\n\n**Self-Evaluation:** Could not be performed due to an internal error."
+            explanation += "\n\n**Self-Evaluation:** Could not be performed due to internal error."
         elif evaluation_result.get("status") == "no":
-            eval_summary = evaluation_result.get("summary") or {}
-            eval_points = eval_summary.get("key_points", [])
-            eval_guidance = eval_summary.get("guidance", "")
+            summary = evaluation_result.get("summary") or {}
+            issues = summary.get("key_points", [])
+            guidance = summary.get("guidance", "")
             explanation += (
-                "\n\n**Self-Evaluation Feedback:** The generated prompt has issues."
-                f"\n- Issues: {'; '.join(eval_points) if eval_points else 'None provided'}"
-                f"\n- Guidance: {eval_guidance or 'No guidance available'}"
+                "\n\n**Self-Evaluation Feedback:** Issues detected."
+                f"\n- Issues: {'; '.join(issues) if issues else 'None provided'}"
+                f"\n- Guidance: {guidance or 'No guidance provided'}"
             )
         else:
             explanation += "\n\n**Self-Evaluation:** Passed."
