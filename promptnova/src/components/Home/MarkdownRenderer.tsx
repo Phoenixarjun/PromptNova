@@ -51,7 +51,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ inline, className, children, ...p
           )}
         </button>
       </div>
-      <pre className="p-4 overflow-x-auto"><code className={className} {...props}>{children}</code></pre>
+      <pre className="p-4 overflow-x-auto whitespace-pre"><code className={className} {...props}>{children}</code></pre>
     </div>
   ) : (
     <code className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-sm px-1.5 py-1 font-mono text-sm" {...props}>

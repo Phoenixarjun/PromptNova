@@ -6,6 +6,8 @@ from src.chains.project_pipeline import ProjectPipeline
 from src.chains.update_pipeline import UpdatePipeline
 from src.chains.project_update_pipeline import ProjectUpdatePipeline
 from src.chains.evaluate_pipleline import EvaluatePipeline
+from src.models.project_mania_models import ProjectManiaSchema, ProjectManiaResponse
+from src.chains.project_mania_pipeline import ProjectManiaPipeline
 import re
 import json
 from src.agents.pick_agent import PickAgent
@@ -211,6 +213,26 @@ async def evaluate_prompt_endpoint(eval_input: EvaluatePipelineInput):
     except Exception as e:
         logger.error(f"Error evaluating prompt: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error evaluating prompt: {str(e)}")
+
+@app.post("/project-mania/generate", response_model=ProjectManiaResponse)
+async def generate_project_mania(input_data: ProjectManiaSchema):
+    try:
+        class LLMInput:
+            def __init__(self, **kwargs):
+                self.selected_model = kwargs.get("selected_model")
+                self.selected_groq_model = kwargs.get("selected_groq_model")
+                self.api_key = kwargs.get("api_key")
+                self.password = kwargs.get("password")
+        
+        llm_input = LLMInput(**input_data.dict())
+        llm = get_llm(llm_input)
+        
+        pipeline = ProjectManiaPipeline(llm=llm)
+        result = await pipeline.run(input_data)
+        return result
+    except Exception as e:
+        logger.error(f"Error in Project Mania generation: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error generating template: {str(e)}")
 
 frontend_dir = Path("promptnova/out")
 

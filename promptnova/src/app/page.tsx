@@ -27,6 +27,7 @@ export default function Home() {
         />
         <main className="flex-1 bg-gray-50 dark:bg-gray-800/50">
           <HeroSection />
+          <div className='p-10'>
           <Form
             result={result}
             setResult={setResult}
@@ -37,6 +38,8 @@ export default function Home() {
             selectedGroqModel={selectedGroqModel}
           />
           <ResultDisplay result={result} isLoading={isLoading} error={error} />
+          </div>
+
         </main>
       </div>
       <Footer />
