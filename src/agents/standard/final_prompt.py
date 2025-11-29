@@ -127,27 +127,12 @@ Your JSON object must have exactly two keys:
         else:
             logger.info("Using structured output model...")
             chain = integration_template | self.structured_llm
-
-            try:
-                response = await chain.ainvoke({
-                    "framework_response": framework_response,
-                    "type_prompts": type_prompts_str,
-                    "user_input": user_input,
-                    "framework": framework
-                })
-            except Exception as e:
-                logger.error(f"Structured LLM returned invalid format: {e}")
-                return {
-                    "refined_prompt": "Error: model returned invalid structured output.",
-                    "explanation": f"Structured parsing failed: {str(e)}"
-                }
-
-            if response is None:
-                logger.error("Structured LLM output was None")
-                return {
-                    "refined_prompt": "Error: Model returned empty structured response.",
-                    "explanation": "No structured output could be parsed."
-                }
+            response = await chain.ainvoke({
+                "framework_response": framework_response,
+                "type_prompts": type_prompts_str,
+                "user_input": user_input,
+                "framework": framework
+            })
 
         refined_prompt = response.refined_prompt.strip()
         explanation = response.explanation.strip()
