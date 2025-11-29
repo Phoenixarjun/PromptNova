@@ -429,7 +429,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     }
 
     let finalPromptText = promptText;
-    let endpoint = 'http://127.0.0.1:8000/refine';
+    let endpoint = 'https://promptnova.onrender.com/refine';
 
     if (settingMode === 'expert+') {
       const cleanParams: AdvancedParams = { types: {}, framework: {} };
@@ -463,7 +463,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     }
 
     if (promptMode === 'project') {
-      endpoint = 'http://127.0.0.1:8000/project';
+      endpoint = 'https://promptnova.onrender.com/project';
       if (settingMode === 'expert+') {
         const cleanProjectParams = Object.fromEntries(Object.entries(projectParams).filter(([, v]) => v));
         finalPromptText = `Project Details:\n${JSON.stringify(cleanProjectParams, null, 2)}\n\n---\n\n${promptText}`;
