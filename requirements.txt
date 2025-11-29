@@ -10,7 +10,9 @@ langchain-community==0.3.7
 langgraph==0.2.19
 
 langchain-google-genai==2.0.0
+# google-generativeai==0.7.2
 google-generativeai
 
 langchain-mistralai==0.2.0
 langchain-groq==0.2.0
+mistralai==1.0.3

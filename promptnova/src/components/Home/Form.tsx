@@ -429,7 +429,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
     }
 
     let finalPromptText = promptText;
-    let endpoint = 'https://promptnova.onrender.com/refine';
+    let endpoint = 'http://localhost:8000/refine';
 
     if (settingMode === 'expert+') {
       const cleanParams: AdvancedParams = { types: {}, framework: {} };
