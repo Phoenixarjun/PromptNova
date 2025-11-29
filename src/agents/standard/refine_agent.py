@@ -69,9 +69,16 @@ You MUST respond with a JSON object enclosed in ```json ... ```. Ensure all stri
             })
             
             json_str = response.content
-            match = re.search(r"```json\n(.*?)\n```", json_str, re.DOTALL)
+            # Try to find JSON block with more flexible regex
+            match = re.search(r"```json\s*(.*?)\s*```", json_str, re.DOTALL | re.IGNORECASE)
             if match:
                 json_str = match.group(1)
+            else:
+                # Fallback: try to find the first { and last }
+                start = json_str.find('{')
+                end = json_str.rfind('}')
+                if start != -1 and end != -1:
+                    json_str = json_str[start:end+1]
 
             response_data = json.loads(json_str, strict=False)
             validated_data = RefinedAgentPrompts(**response_data)
