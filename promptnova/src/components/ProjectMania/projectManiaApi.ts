@@ -11,13 +11,13 @@ export interface ProjectManiaRequest {
 
 export interface ProjectManiaResponse {
   final_template: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export const generateProjectManiaTemplate = async (
   payload: ProjectManiaRequest
 ): Promise<ProjectManiaResponse> => {
-  const response = await fetch('http://127.0.0.1:8000/project-mania/generate', {
+  const response = await fetch('https://promptnova.onrender.com/project-mania/generate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, Sparkles, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Sparkles, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface FullEvaluationResult {
   llm_as_judge: {

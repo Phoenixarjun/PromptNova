@@ -12,7 +12,7 @@ import CryptoJS from 'crypto-js';
 
 interface ProjectManiaFormProps {
   setResult: (result: string) => void;
-  setMetadata: (metadata: any) => void;
+  setMetadata: (metadata: Record<string, unknown> | null) => void;
   setIsLoading: (loading: boolean) => void;
   setError: (error: string) => void;
   isLoading: boolean;
@@ -286,7 +286,7 @@ export const ProjectManiaForm: React.FC<ProjectManiaFormProps> = ({
 
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+              className="w-full bg-gray-800 text-white dark:bg-gray-300 dark:text-gray-800 px-6 py-3 rounded-md hover:bg-gray-700 dark:hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 font-semibold text-lg disabled:bg-gray-400 dark:disabled:bg-gray-500 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
               {isLoading ? (
