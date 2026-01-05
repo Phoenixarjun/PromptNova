@@ -745,7 +745,7 @@ export const Form: React.FC<FormProps> = ({ result, setResult, setIsLoading, set
             ) : (
               <>
                 <p className="font-semibold">Current Mode: Default</p>
-                <p className="mt-1">
+                <p className="mt-1" suppressHydrationWarning>
                   Using the &quot;{combos.find(c => c.name === "Universal Adaptive Engine")?.name || combos[1].name}&quot; strategy.
                   Switch to Expert or Expert+ via the settings icon for more options.
                 </p>

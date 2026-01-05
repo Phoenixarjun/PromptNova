@@ -134,7 +134,7 @@ export const RefineForm: React.FC<RefineFormProps> = ({
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ detail: `HTTP error! status: ${response.status}` }));
         throw new Error(errorData.detail || 'Failed to refine.');
       }
 
