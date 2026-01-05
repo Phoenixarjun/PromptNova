@@ -93,7 +93,7 @@ def get_llm(prompt_input):
 
     if model_provider == 'gemini':
         api_key = decrypted_api_key or GOOGLE_API_KEY
-        return ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key=api_key, temperature=0.7)
+        return ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=api_key, temperature=0.7)
 
     elif model_provider == 'groq':
         api_key = decrypted_api_key or GROQ_API_KEY
