@@ -1,18 +1,17 @@
-# 🚀 PromptNova – Your Open-Source AI Prompt Library
+# 🚀 PromptNova – Your Open-Source AI Prompt Engineering Workbench
 
-<img width="1898" height="866" alt="image" src="https://github.com/user-attachments/assets/728ec65d-6968-4368-8819-579356c2e6f9" />
+<img width="1898" height="866" alt="PromptNova Banner" src="https://github.com/user-attachments/assets/728ec65d-6968-4368-8819-579356c2e6f9" />
 
-
-> **Discover, Create, and Share.**  
-> PromptNova is an open-source platform to explore a universe of creative AI prompts, built for developers, writers, and creators to unlock the full potential of language models.
+> **Discover, Refine, and Optimize.**  
+> PromptNova is an open-source platform to craft, compile, and evaluate high-performance AI prompts, built for developers, researchers, and creators to unlock the full reasoning potential of modern language models.
 
 ---
 
-## 💡 The Problem: Performance Under-Supply
+## 💡 The Problem: Performance Under-Supply (PUX)
 
-In the rapidly evolving world of AI, crafting the perfect prompt is an art form. While Large Language Models (LLMs) are incredibly powerful, most of us are unaware of the vast array of prompt engineering **types and frameworks** that exist.
+In the rapidly evolving world of generative AI, crafting the perfect prompt is an engineering discipline. While Large Language Models (LLMs) are exceptionally capable, most users rely on basic zero-shot instructions, unaware of the vast array of structured prompt engineering **types and frameworks** that exist.
 
-This leads to **"Performance Under-Supply" (PUX)** where we only tap into a fraction of an AI's true potential. PromptNova was built to solve this by providing a community-driven hub for discovering, creating, and sharing high-quality, structured prompts.
+This leads to **"Performance Under-Supply" (PUX)**—a state where models operate at only a fraction of their true reasoning potential. PromptNova solves this by serving as an intelligent compilation and evaluation engine that structures raw user intent into production-grade prompts and multi-agent templates.
 
 ---
 
@@ -24,17 +23,13 @@ This leads to **"Performance Under-Supply" (PUX)** where we only tap into a frac
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
-![NextAuth.js](https://img.shields.io/badge/NextAuth.js-000?style=for-the-badge&logo=nextdotjs&logoColor=white)
-![Gemini AI](https://img.shields.io/badge/Gemini_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![NextAuth.js](https://img.shields.io/badge/NextAuth.js-000?style=for-the-badge&logo=nextdotjs&logoColor=white)
-![Gemini AI](https://img.shields.io/badge/Gemini_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)
-![LangChain](https://img.shields.io/badge/LangChain-0052CC?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python_3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![LangGraph](https://img.shields.io/badge/LangGraph-0052CC?style=for-the-badge)
+![LangChain](https://img.shields.io/badge/LangChain-0052CC?style=for-the-badge)
+![Gemini AI](https://img.shields.io/badge/Gemini_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)
 ![Groq](https://img.shields.io/badge/Groq-F4370A?style=for-the-badge)
+![Mistral AI](https://img.shields.io/badge/Mistral_AI-FF7000?style=for-the-badge)
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 
 ---
@@ -43,80 +38,108 @@ This leads to **"Performance Under-Supply" (PUX)** where we only tap into a frac
 
 | Technology | Purpose |
 |---|---|
-| **Next.js** | Full-stack React framework for a fast, server-rendered application with API routes. |
-| **React** | Building a dynamic, component-based, and responsive user interface. |
-| **TypeScript** | Ensures type safety and improves the developer experience for a scalable codebase. |
-| **Tailwind CSS** | Rapid, utility-first styling directly in markup for a consistent and modern design. |
-| **Node.js** | Backend JavaScript runtime to handle server-side logic. |
-| **MongoDB** | Flexible NoSQL database to store user profiles, prompts, and tags. |
-| **FastAPI** | High-performance Python web framework for building the AI agent backend. |
-| **NextAuth.js** | Simplified and secure authentication, providing seamless Google OAuth integration. |
-| **Gemini AI** | Powers the advanced prompt generation and refinement features. |
-| **LangChain** | Framework for developing applications powered by language models. |
-| **LangGraph** | Builds stateful, multi-actor applications with LLMs by modeling steps as a graph. |
-| **Groq** | High-performance LPU Inference Engine for running LLMs at exceptional speed. |
-| **Git** | Version control for collaboration and maintaining a clean code history. |
+| **Next.js 16** | Modern React framework providing a fast, responsive user interface with static optimization and export. |
+| **React 19** | Powers the dynamic, component-based frontend and reactive form states. |
+| **TypeScript** | Ensures end-to-end type safety and developer ergonomics across frontend components and schemas. |
+| **Tailwind CSS 4** | Rapid utility-first styling with native OKLCH tokens and dark mode support. |
+| **FastAPI** | High-performance asynchronous Python web framework orchestrating the AI agent backend. |
+| **LangGraph** | Builds stateful, multi-actor cyclical workflows for iterative prompt self-correction and evaluation. |
+| **LangChain** | Provides prompt templates, output parsers, and multi-provider model abstractions. |
+| **Gemini AI** | Primary frontier engine (Gemini 2.5 Flash) for high-accuracy prompt synthesis and critique. |
+| **Groq** | LPU inference engine executing high-speed open-weights models (DeepSeek-R1-Distill, LLaMA 3.3). |
+| **Mistral AI** | Alternative frontier model provider (Mistral Large) for complex reasoning tasks. |
+| **Web Speech API** | Browser-native voice input for hands-free prompt dictation without external dependencies. |
+| **Git** | Distributed version control for collaborative development and release tracking. |
 
 ---
 
-
 ## 🌟 Key Features
 
-### 🔍 Discover a World of Prompts
-Explore a dynamic feed of AI prompts from a global community. Use our powerful search to filter prompts by content, tags, or creators.
+### 🔍 Intelligent Agent Picker (`/pick_agent`)
+Not sure which prompting technique fits your task? The autonomous agent picker analyzes your raw text and automatically selects the most effective 3–5 prompt types and 1 complementary framework.
 
-### ✍️ Create & Share with Ease
-Our simple editor allows you to create, tag, and share your prompts in seconds. Use **Basic Mode** for quick creation or **Expert Mode** for granular control.
+### ✍️ Multi-Style Prompt Compilation (`/refine`)
+Transform simple instructions into expert-level prompts by combining up to 5 prompting styles (Zero-Shot, Few-Shot, CoT, ToT, ReAct, Self-Consistency, Reflexion, etc.) and a structured framework (CO-STAR, CRISPE, TCEF, RTF, etc.) inside a stateful LangGraph refinement loop.
 
-### 📚 Your Personal Prompt Library
-Your user profile acts as your personal collection. Showcase all the prompts you've created, and easily edit or delete them at any time.
+### 📊 Multi-Perspective Prompt Evaluation (`/evaluate`)
+Objectively evaluate prompt quality across multiple independent evaluation frameworks in parallel via `asyncio.gather`:
+- **LLM-as-a-Judge**: Evaluates clarity, specificity, context completeness, goal alignment, and measurability.
+- **T-RAG**: Measures intent alignment, instruction completeness, relevance, and ambiguity.
+- **MAR Framework**: Scores clarity, completeness, structure, and creativity-precision balance to generate an overall normalized quality score (0–100).
 
-### 📖 Comprehensive Prompting Guide
-Learn the art and science of prompt engineering with our built-in guide, which explains dozens of prompt types and frameworks.
+### 🤖 Project Mania – Multi-Agent Blueprints (`/project-mania`)
+Generate turnkey, framework-ready code templates and configurations for:
+- **CrewAI**: Full agent and task definitions with role-based personas.
+- **AutoGen**: Conversable multi-agent system configurations.
+- **Generic Jinja**: Flexible parameterized prompt templates.
 
-### ✨ AI-Powered Refinement
-Use the **Refine** feature to have an AI agent improve your existing prompts, making them more effective and structured.
+### 📖 Interactive Prompt Engineering Guide (`/guide`)
+Explore an offline, statically pre-rendered encyclopedia explaining 33 prompt engineering types and 24 frameworks with concrete examples, pros, and cons.
+
+### 🔄 Conversational Refinement Loops
+Iteratively refine generated prompts or project blueprints with natural language critique through human-in-the-loop update pipelines.
 
 ---
 
 ## 🖼️ Screenshots
 
-<img width="1890" height="864" alt="image" src="https://github.com/user-attachments/assets/957e6a84-36aa-4341-9433-50001bddfc04" />
+<img width="1890" height="864" alt="PromptNova App Interface" src="https://github.com/user-attachments/assets/957e6a84-36aa-4341-9433-50001bddfc04" />
 
+<img width="1886" height="862" alt="Prompt Evaluation Interface" src="https://github.com/user-attachments/assets/d5e620db-afa0-48bb-bf47-7dc691109c33" />
 
-<img width="1886" height="862" alt="image" src="https://github.com/user-attachments/assets/d5e620db-afa0-48bb-bf47-7dc691109c33" />
-
-<img width="1886" height="862" alt="image" src="https://github.com/user-attachments/assets/1e836915-41d3-4939-be89-b530b993f485" />
+<img width="1886" height="862" alt="Project Mania Interface" src="https://github.com/user-attachments/assets/1e836915-41d3-4939-be89-b530b993f485" />
 
 ---
 
 ## 🔗 Live Demo
 
 **🌍 [Visit PromptNova Now →](https://prompt-nova.vercel.app/)**  
-Fully responsive. Works across devices.
+Fully responsive. Works seamlessly across desktop and mobile devices.
 
 ---
 
 ## 🧪 Run Locally
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/Phoenixarjun/PromptNova.git
-    cd PromptNova
-    ```
+### 1. Clone the repository
+```bash
+git clone https://github.com/Phoenixarjun/PromptNova.git
+cd PromptNova
+```
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
+### 2. Set up and start the Backend (FastAPI)
+```bash
+# Create and activate a Python virtual environment
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On Linux/macOS:
+# source venv/bin/activate
 
-3.  **Set up environment variables:**
-    Create a `.env.local` file in the root directory and add the necessary keys (e.g., `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GEMINI_API_KEY`).
+# Install Python dependencies
+pip install -r requirements.txt
 
-4.  **Start the development server:**
-    ```bash
-    npm run dev
-    ```
+# Configure environment variables in a .env file:
+# GOOGLE_API_KEY=your_gemini_api_key
+# GROQ_API_KEY=your_groq_api_key (optional)
+# MISTRAL_API_KEY=your_mistral_api_key (optional)
+
+# Run the FastAPI server
+uvicorn app:app --reload --port 8000
+```
+
+### 3. Set up and start the Frontend (Next.js)
+In a separate terminal:
+```bash
+cd promptnova
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
@@ -124,13 +147,11 @@ Fully responsive. Works across devices.
 
 **Naresh B A** – Full Stack Developer & AI/ML Enthusiast
 
-Connect: LinkedIn | Portfolio
+- **GitHub**: [@Phoenixarjun](https://github.com/Phoenixarjun)
+- **Portfolio**: [naresh-portfolio-007.netlify.app](https://naresh-portfolio-007.netlify.app/)
 
 ---
 
-## ⚡ Final Thoughts
+## ⚡ License & Contributions
 
-> PromptNova is more than just an app—it's a toolkit for creativity.
-> It's a blend of full-stack web engineering and generative AI designed to empower everyone to communicate with AI more effectively.
-
-Let’s build a smarter future. One prompt at a time. 💪
+PromptNova is open-source software licensed under the [MIT License](LICENSE). Pull requests and contributions are welcome!
